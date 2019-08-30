@@ -12,12 +12,15 @@
 #property link      "https://www.mql5.com"
 #property version   "1.00"
 
+//
 // Define input parameters (comments are labels)
+//
 input string assetCode = "WINV19";     // Asset Code
 input double contracts = 1;            // Number of Contracts
-input int shortPeriod = 1;             // Moving Avarage - Short
-input int longPeriod = 5;              // Moving Avarage - Long
-input ENUM_TIMEFRAMES chartTime = 1;  // Chart Time (M1, M5, M15)
+input int shortPeriod = 13;             // Moving Avarage - Short
+input int longPeriod = 26;              // Moving Avarage - Long
+input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
+input double factor = 1.01;            // Avoid crossing all time 
 
 //
 // General Declaration
@@ -30,8 +33,8 @@ double shortMovingAvarage = 0;   // Short moving avarage
 double longMovingAvarage = 0;    // Long moving avarage
 double stopLoss = 0.0;           // Stop loss for current trade
 double takeProfit = 0.0;         // Profit value for current trade
-int pointsLoss = 0;             // Default stop loss
-int pointsGain = 0;            // Default stop gain
+int pointsLoss = 5;              // Default stop loss
+int pointsGain = 50;             // Default stop gain
 
 ATTTrade _ATTTrade;
 ATTPrice _ATTPrice;
@@ -67,7 +70,7 @@ void OnTick()
    longMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, longPeriod);
    
    // Handle crossing up
-   if (shortMovingAvarage > longMovingAvarage) {
+   if ((shortMovingAvarage*factor) > longMovingAvarage) {
    
       // Close current position
       if (sellPositionIsOpen == true) {
@@ -78,8 +81,8 @@ void OnTick()
       // Open long position
       if (buyPositionIsOpen == false) {
       
-         stopLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
-         takeProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsGain);      
+         //stopLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
+         //takeProfit = _ATTPrice.GetTakeProfit(priceBid, pointsGain);      
                
          _ATTTrade.Buy(assetCode, contracts, 0.0, 0.0);
          buyPositionIsOpen = true;
@@ -87,7 +90,7 @@ void OnTick()
    } 
    
    // Handle crossing down
-   if (shortMovingAvarage < longMovingAvarage) {
+   if (((shortMovingAvarage*factor)) < longMovingAvarage) {
    
       // Close current position
       if (buyPositionIsOpen == true) {
@@ -97,14 +100,14 @@ void OnTick()
 
       // Open long position
       if (sellPositionIsOpen == false) {     
+      
+         //stopLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
+         //takeProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsGain);            
+      
          _ATTTrade.Sell(assetCode, contracts, 0.0, 0.0);
          sellPositionIsOpen = true;
       }
    }
-   
-   
-   Comment("shortMovingAvarage: ", shortMovingAvarage, " longMovingAvarage: ", longMovingAvarage, " price: ", (priceBid + priceAsk)/2);
-   
-   
+
 }
 
