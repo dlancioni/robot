@@ -17,8 +17,8 @@
 //
 input string assetCode = "WINV19";     // Asset Code
 input double contracts = 1;            // Number of Contracts
-input int shortPeriod = 13;             // Moving Avarage - Short
-input int longPeriod = 26;              // Moving Avarage - Long
+input int shortPeriod = 1;             // Moving Avarage - Short
+input int longPeriod = 50;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
 input double factor = 1.01;            // Avoid crossing all time 
 
@@ -81,8 +81,8 @@ void OnTick()
       // Open long position
       if (buyPositionIsOpen == false) {
       
-         //stopLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
-         //takeProfit = _ATTPrice.GetTakeProfit(priceBid, pointsGain);      
+         stopLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
+         takeProfit = _ATTPrice.GetTakeProfit(priceBid, pointsGain);
                
          _ATTTrade.Buy(assetCode, contracts, 0.0, 0.0);
          buyPositionIsOpen = true;
@@ -101,8 +101,8 @@ void OnTick()
       // Open long position
       if (sellPositionIsOpen == false) {     
       
-         //stopLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
-         //takeProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsGain);            
+         stopLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
+         takeProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsGain);
       
          _ATTTrade.Sell(assetCode, contracts, 0.0, 0.0);
          sellPositionIsOpen = true;
