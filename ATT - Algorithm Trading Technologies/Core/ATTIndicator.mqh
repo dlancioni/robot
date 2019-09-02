@@ -1,5 +1,3 @@
-#include <Trade\Trade.mqh>
-
 //+------------------------------------------------------------------+
 //|                                                     ATTIndicator.mqh |
 //|                        Copyright 2019, MetaQuotes Software Corp. |
