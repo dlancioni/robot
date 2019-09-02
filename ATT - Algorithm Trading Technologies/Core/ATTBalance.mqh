@@ -19,7 +19,7 @@ class ATTBalance {
        double GetPnL();     // PnL for current opened position
        double GetEquity();  // Account balance plus current PnL
        double GetMargin();  // Used margin       
-       double IsResultOverLimits(double loss, double profit); // Risk Control - limit profit or loss
+       double IsResultOverLimits(double initialBalance, double loss, double profit); // Risk Control - limit profit or loss
 };
 
 //+------------------------------------------------------------------+
@@ -41,10 +41,10 @@ double ATTBalance::GetMargin() {
    return AccountInfoDouble(ACCOUNT_MARGIN);
 }
 
-double ATTBalance::IsResultOverLimits(double loss, double profit) {
+double ATTBalance::IsResultOverLimits(double ib, double loss, double profit) {
 
    bool flag = false;
-   double result = (ATTBalance::GetBalance() - ATTBalance::GetEquity());
+   double result = (ib - ATTBalance::GetEquity());
       
    if (result<=(loss*-1) || result>=profit) {
        flag = true;

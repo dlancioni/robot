@@ -22,7 +22,7 @@ input int longPeriod = 5;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
 input double factor = 50;              // Trigger trades when (short avarage + factor) crosses the longer avarage. 
 input double pointsLoss = 50;          // Default stop loss
-input double pointsProfit = 150;       // Default stop gain
+input double pointsProfit = 500;       // Default stop gain
 input double dailyLoss = 200;          // Daily loss limit (per contract)
 input double dailyProfit = 100;        // Daily profit limit (per contract)
 
@@ -37,6 +37,7 @@ double shortMovingAvarage = 0;   // Short moving avarage
 double longMovingAvarage = 0;    // Long moving avarage
 double priceLoss = 0.0;           // Stop loss for current trade
 double priceProfit = 0.0;         // Profit value for current trade
+double initialBalance = 0.0;
 
 ATTTrade _ATTTrade;
 ATTPrice _ATTPrice;
@@ -48,6 +49,9 @@ ATTBalance _ATTBalance;
 //
 int OnInit() 
 {   
+
+   initialBalance = _ATTBalance.GetBalance();
+
     return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
@@ -70,10 +74,10 @@ void OnTick()
       Alert("No price available for ", assetCode, ". Exiting program");
    }
    
-   // if result touch the limits - stop everything
-   if (_ATTBalance.IsResultOverLimits(dailyLoss, dailyProfit)) {
-      ExpertRemove();
-      Alert("Daily limits were achieved");
+   // if result touch the limits - stop everything  
+   if (_ATTBalance.IsResultOverLimits(initialBalance, dailyLoss, dailyProfit)) {
+       ExpertRemove();
+       Alert("Daily limits were achieved");
    }
 
    // Calculate EMA for short and long period
@@ -81,7 +85,7 @@ void OnTick()
    longMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, longPeriod);
    
    // Handle crossing up
-   if ((shortMovingAvarage+factor) > longMovingAvarage) {
+   if ((shortMovingAvarage-factor) > longMovingAvarage) {
    
       // Close current position
       if (sellPositionIsOpen == true) {
@@ -101,7 +105,7 @@ void OnTick()
    } 
    
    // Handle crossing down
-   if (((shortMovingAvarage+factor)) < longMovingAvarage) {
+   if (((shortMovingAvarage-factor)) < longMovingAvarage) {
    
       // Close current position
       if (buyPositionIsOpen == true) {
