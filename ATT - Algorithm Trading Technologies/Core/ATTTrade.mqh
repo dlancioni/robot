@@ -14,44 +14,46 @@
 //+------------------------------------------------------------------+
 class ATTTrade {
    private:
-       ulong TradeAtMarketPrice(const string bs, const string symbol, double qtt, double sl, double tp);
+       ulong TradeAtMarketPrice(const string bs, const string symbol, double qtt, double price, double sl, double tp);
      
    public:
-       int openPosition;
-       ulong Buy(const string symbol, double qtt, double sl, double tp);
-       ulong Sell(const string symbol, double qtt, double sl, double tp);
+       ulong Buy(const string symbol, double qtt, double price, double sl, double tp);       
+       ulong Sell(const string symbol, double qtt, double price, double sl, double tp);       
+       
        void CloseAllPositions();
+       void CloseAllOrders();
+       bool GetAccountType();
 };
 
 //+------------------------------------------------------------------+
 //| Open or close position at market price                           |
 //+------------------------------------------------------------------+
-ulong ATTTrade::Buy(const string symbol=NULL, double qtt=0.0, double sl=0.0, double tp=0.0) {
-   return ATTTrade::TradeAtMarketPrice("BUY", symbol, qtt, sl, tp);
+ulong ATTTrade::Buy(const string symbol=NULL, double qtt=0.0, double price=0.0, double sl=0.0, double tp=0.0) {
+   return ATTTrade::TradeAtMarketPrice("BUY", symbol, qtt, price, sl, tp);
 }
-ulong ATTTrade::Sell(const string symbol=NULL, double qtt=0.0, double sl=0.0, double tp=0.0) {
-   return ATTTrade::TradeAtMarketPrice("SELL", symbol, qtt, sl, tp);
+ulong ATTTrade::Sell(const string symbol=NULL, double qtt=0.0, double price=0.0, double sl=0.0, double tp=0.0) {
+   return ATTTrade::TradeAtMarketPrice("SELL", symbol, qtt, price, sl, tp);
 }
 
 //+------------------------------------------------------------------+
 //| Core logic to open and close positions at market price           |
 //+------------------------------------------------------------------+
-ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, double qtt=0.0, double sl=0.0, double tp=0.0) {
+ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, double qtt=0.0, double price=0.0, double sl=0.0, double tp=0.0) {
 
    // General Declaration
    CTrade trade;   
    bool result = false;
    ulong ticketId = 0;
-   string comment = "Pending comment yet";
+   string comment = "";
    
    // Trade when 1(buy) or 2(Sell), otherwise reteurn zero  
    if (bs=="BUY" || bs=="SELL") {
    
       // Buy or sell according
       if (bs=="BUY") {
-         result = trade.Buy(qtt, symbol, 0.0, sl, tp, comment);
+         result = trade.BuyStop(qtt, price, symbol, sl, tp, ORDER_TIME_GTC);
       } else {
-         result = trade.Sell(qtt, symbol, 0.0, sl, tp, comment);
+         result = trade.SellStop(qtt, price, symbol, sl, tp, ORDER_TIME_GTC);
       }
 
       // Check trading action
@@ -82,3 +84,43 @@ void ATTTrade::CloseAllPositions() {
 	      ticketId = trade.PositionClose(id);
      }   
 }
+
+//+------------------------------------------------------------------+
+//| Close all open orders                                            |
+//+------------------------------------------------------------------+
+void ATTTrade::CloseAllOrders() {
+
+    // General Declaration
+    CTrade trade;   
+    ulong id = 0;
+    ulong ticketId = 0;
+
+    // Close open positions
+     for (int i=OrdersTotal()-1; i>=0; i--) {
+	      id = OrderGetTicket(i);
+	      ticketId = trade.OrderDelete(id);
+     }   
+}
+
+bool ATTTrade::GetAccountType() {
+
+    ENUM_ACCOUNT_TRADE_MODE tradeMode=(ENUM_ACCOUNT_TRADE_MODE)AccountInfoInteger(ACCOUNT_TRADE_MODE); 
+
+    //--- Find out the account type 
+    switch(tradeMode) { 
+       case(ACCOUNT_TRADE_MODE_DEMO): 
+           Print("This is a demo account"); 
+           break; 
+       case(ACCOUNT_TRADE_MODE_CONTEST): 
+           Print("This is a competition account"); 
+           break; 
+       default:
+           Print("This is a real account!"); 
+    } 
+    
+    return true;
+
+}
+
+
+
