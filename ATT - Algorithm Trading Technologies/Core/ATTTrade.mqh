@@ -21,6 +21,7 @@ class ATTTrade {
        ulong Sell(const string symbol, double qtt, double price, double sl, double tp);       
        
        void CloseAllPositions();
+       ulong DeleteOrder(ulong tid);
        void CloseAllOrders();
        bool GetAccountType();
 };
@@ -43,7 +44,7 @@ ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, do
    // General Declaration
    CTrade trade;   
    bool result = false;
-   ulong ticketId = 0;
+   ulong tid = 0;
    string comment = "";
    
    // Trade when 1(buy) or 2(Sell), otherwise reteurn zero  
@@ -59,29 +60,39 @@ ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, do
       // Check trading action
       if (result) {
          if (trade.ResultRetcode()==TRADE_RETCODE_DONE) {   
-            ticketId = trade.ResultDeal();
+            tid = trade.ResultOrder();
          }
       }
    }
    
    // Return ticket id or zeros
-   return ticketId;
+   return tid;
 }
+
 
 //+------------------------------------------------------------------+
 //| Close all open positions at market price                         |
+//+------------------------------------------------------------------+
+ulong ATTTrade::DeleteOrder(ulong tid) {
+    ulong cancelId = 0;  
+    CTrade trade;
+    cancelId = trade.OrderDelete(tid);
+    return 0;
+}
+
+//+------------------------------------------------------------------+
+//| Delete all pending orders                                        |
 //+------------------------------------------------------------------+
 void ATTTrade::CloseAllPositions() {
 
     // General Declaration
     CTrade trade;   
     ulong id = 0;
-    ulong ticketId = 0;
 
     // Close open positions
      for (int i=PositionsTotal()-1; i>=0; i--) {
 	      id = PositionGetTicket(i);
-	      ticketId = trade.PositionClose(id);
+	      trade.PositionClose(id);
      }   
 }
 
@@ -93,12 +104,11 @@ void ATTTrade::CloseAllOrders() {
     // General Declaration
     CTrade trade;   
     ulong id = 0;
-    ulong ticketId = 0;
 
     // Close open positions
      for (int i=OrdersTotal()-1; i>=0; i--) {
 	      id = OrderGetTicket(i);
-	      ticketId = trade.OrderDelete(id);
+	      trade.OrderDelete(id);
      }   
 }
 

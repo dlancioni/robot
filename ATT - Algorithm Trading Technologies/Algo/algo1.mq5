@@ -37,6 +37,8 @@ ATTPrice _ATTPrice;
 ATTIndicator _ATTIndicator;
 ATTBalance _ATTBalance;
 
+ulong orderIdBuy = 0;             // Current open ticket
+ulong orderIdSell = 0;            // Current open ticket
 double priceBid = 0.0;           // Current bid price
 double priceAsk = 0.0;           // Current ask price
 double shortMovingAvarage = 0;   // Short moving avarage 
@@ -91,20 +93,26 @@ void OnTick()
    
    // Crossing up
    if ((shortMovingAvarage) > longMovingAvarage) {
-      _ATTTrade.CloseAllOrders();
-      priceAsk = priceAsk + factor;
-      priceLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
-      priceProfit = _ATTPrice.GetTakeProfit(priceBid, pointsProfit);            
-      _ATTTrade.Buy(assetCode, contracts, priceAsk, priceLoss, priceProfit);      
+
+      orderIdSell = _ATTTrade.DeleteOrder(orderIdSell);      
+      if (orderIdBuy == 0) {
+         priceAsk = priceAsk + factor;
+         priceLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
+         priceProfit = _ATTPrice.GetTakeProfit(priceBid, pointsProfit);
+         orderIdBuy = _ATTTrade.Buy(assetCode, contracts, priceAsk, priceLoss, priceProfit);
+      }
    } 
 
    // Handle crossing down
    if (((shortMovingAvarage)) < longMovingAvarage) {
-      _ATTTrade.CloseAllOrders();
-      priceBid = priceBid - factor;         
-      priceLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
-      priceProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsProfit);
-      _ATTTrade.Sell(assetCode, contracts, priceBid, priceLoss, priceProfit);      
+   
+      _ATTTrade.DeleteOrder(orderIdBuy);      
+      if (orderIdSell == 0) {      
+         priceBid = priceBid - factor;
+         priceLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
+         priceProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsProfit);
+         orderIdSell = _ATTTrade.Sell(assetCode, contracts, priceBid, priceLoss, priceProfit);
+      }
    }
 
 }
