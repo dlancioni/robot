@@ -44,7 +44,7 @@ double ATTBalance::GetMargin() {
 double ATTBalance::IsResultOverLimits(double loss, double profit) {
 
    bool flag = false;
-   double result = MathAbs((ATTBalance::GetBalance() - ATTBalance::GetBalance()));
+   double result = MathAbs((ATTBalance::GetBalance() - ATTBalance::GetEquity()));
    
    if (result<=loss || result>=profit) {
        flag = true;
