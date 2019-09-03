@@ -22,7 +22,7 @@ class ATTTrade {
        
        void CloseAllPositions();
        ulong DeleteOrder(ulong tid);
-       void CloseAllOrders();
+       ulong CloseAllOrders();
        bool GetAccountType();
 };
 
@@ -74,8 +74,13 @@ ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, do
 //| Close all open positions at market price                         |
 //+------------------------------------------------------------------+
 ulong ATTTrade::DeleteOrder(ulong tid) {
-    CTrade trade;
-    trade.OrderDelete(tid);
+    CTrade trade;    
+    
+    if (tid > 0) {
+       if (OrdersTotal() > 0) {
+           trade.OrderDelete(tid);
+       }
+    }
     return 0;
 }
 
@@ -98,7 +103,7 @@ void ATTTrade::CloseAllPositions() {
 //+------------------------------------------------------------------+
 //| Close all open orders                                            |
 //+------------------------------------------------------------------+
-void ATTTrade::CloseAllOrders() {
+ulong ATTTrade::CloseAllOrders() {
 
     // General Declaration
     CTrade trade;   
@@ -108,7 +113,9 @@ void ATTTrade::CloseAllOrders() {
      for (int i=OrdersTotal()-1; i>=0; i--) {
 	      id = OrderGetTicket(i);
 	      trade.OrderDelete(id);
-     }   
+     }
+     
+     return 0;   
 }
 
 bool ATTTrade::GetAccountType() {

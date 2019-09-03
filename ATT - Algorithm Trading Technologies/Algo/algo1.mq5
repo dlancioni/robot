@@ -104,15 +104,18 @@ void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage
    double price = 0;
    double priceLoss = 0.0;          // Stop loss for current trade
    double priceProfit = 0.0;        // Profit value for current trade
+   
+   
+   Print("orderIdBuy: ", orderIdBuy, " orderIdSell: ", orderIdSell);
 
    // Crossing up
    if ((shortMovingAvarage) > longMovingAvarage) {
 
-      orderIdSell = _ATTTrade.DeleteOrder(orderIdSell);      
-      if (orderIdBuy == 0 && orderIdSell == 0) {
+      orderIdSell = _ATTTrade.CloseAllOrders();
+      if (orderIdSell == 0) {
          price = _ATTMath.Sum(priceAsk, factor*2);
-         priceLoss = _ATTMath.Subtract(priceBid, factor*1);
-         priceProfit = _ATTMath.Sum(priceBid, factor*3);
+         priceLoss = _ATTMath.Subtract(price, factor*1);
+         priceProfit = _ATTMath.Sum(price, factor*2);
          orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
       }
    } 
@@ -120,11 +123,11 @@ void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage
    // Handle crossing down
    if (((shortMovingAvarage)) < longMovingAvarage) {
    
-      _ATTTrade.DeleteOrder(orderIdBuy);      
-      if (orderIdBuy == 0 && orderIdSell == 0) {            
+      orderIdBuy = _ATTTrade.CloseAllOrders();
+      if (orderIdBuy == 0) {            
          price = _ATTMath.Subtract(priceBid, factor*2);
-         priceLoss = _ATTMath.Sum(priceAsk, factor*1);
-         priceProfit = _ATTMath.Subtract(priceAsk, factor*3);
+         priceLoss = _ATTMath.Sum(price, factor*1);
+         priceProfit = _ATTMath.Subtract(price, factor*2);
          orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
       }
    }
