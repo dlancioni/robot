@@ -37,9 +37,10 @@ ATTIndicator _ATTIndicator;
 ATTBalance _ATTBalance;
 ATTMath _ATTMath;
 
-ulong orderIdBuy = 0;             // Current open ticket
-ulong orderIdSell = 0;            // Current open ticket
-double initialBalance = 0.0;     // Used to limit profit and loss in daily basis
+ulong orderIdBuy = 0;               // Current open ticket
+ulong orderIdSell = 0;              // Current open ticket
+double initialBalance = 0.0;        // Used to limit profit and loss in daily basis
+string lastCross = "";
 
 //
 // Start and finish events
@@ -95,7 +96,6 @@ void OnTick()
          TradeOnCrossing(priceBid, priceAsk, shortMovingAvarage, longMovingAvarage);     
       }
    }
-   
 }
 
 void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage, double longMovingAvarage) {
@@ -104,31 +104,41 @@ void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage
    double price = 0;
    double priceLoss = 0.0;          // Stop loss for current trade
    double priceProfit = 0.0;        // Profit value for current trade
-   
+   bool cross = false;              // Start openning a position on current tendence
    
    Print("orderIdBuy: ", orderIdBuy, " orderIdSell: ", orderIdSell);
+   Print("shortMovingAvarage: ", shortMovingAvarage, " longMovingAvarage: ", longMovingAvarage);
+      
+   // Control last cross   
+   if ((shortMovingAvarage) > longMovingAvarage) {
+      if (lastCross!="S") {cross=true;} lastCross="S";
+   } else {
+      if (lastCross!="L") {cross=true;} lastCross="L";
+   }
 
    // Crossing up
-   if ((shortMovingAvarage) > longMovingAvarage) {
-
-      orderIdSell = _ATTTrade.CloseAllOrders();
-      if (orderIdSell == 0) {
-         price = _ATTMath.Sum(priceAsk, factor*2);
-         priceLoss = _ATTMath.Subtract(price, factor*1);
-         priceProfit = _ATTMath.Sum(price, factor*2);
-         orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
-      }
-   } 
-
-   // Handle crossing down
-   if (((shortMovingAvarage)) < longMovingAvarage) {
+   if (cross) {
    
-      orderIdBuy = _ATTTrade.CloseAllOrders();
-      if (orderIdBuy == 0) {            
-         price = _ATTMath.Subtract(priceBid, factor*2);
-         priceLoss = _ATTMath.Sum(price, factor*1);
-         priceProfit = _ATTMath.Subtract(price, factor*2);
-         orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
+      // Cross up, must cancel short orders and open long orders   
+      if ((shortMovingAvarage) > longMovingAvarage) {   
+         orderIdSell = _ATTTrade.CloseAllOrders();
+         if (orderIdSell == 0) {
+            price = _ATTMath.Sum(priceAsk, factor*2);
+            priceLoss = _ATTMath.Subtract(price, factor*1);
+            priceProfit = _ATTMath.Sum(price, factor*2);
+            orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
+         }
+      } 
+   
+      // Cross down, must cancel long orders and open short orders   
+      if (((shortMovingAvarage)) < longMovingAvarage) {      
+         orderIdBuy = _ATTTrade.CloseAllOrders();
+         if (orderIdBuy == 0) {            
+            price = _ATTMath.Subtract(priceBid, factor*2);
+            priceLoss = _ATTMath.Sum(price, factor*1);
+            priceProfit = _ATTMath.Subtract(price, factor*2);
+            orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
+         }
       }
    }
 }
