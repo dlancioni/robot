@@ -74,9 +74,8 @@ ulong ATTTrade::TradeAtMarketPrice(const string bs, const string symbol=NULL, do
 //| Close all open positions at market price                         |
 //+------------------------------------------------------------------+
 ulong ATTTrade::DeleteOrder(ulong tid) {
-    ulong cancelId = 0;  
     CTrade trade;
-    cancelId = trade.OrderDelete(tid);
+    trade.OrderDelete(tid);
     return 0;
 }
 

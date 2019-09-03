@@ -2,6 +2,7 @@
 #include "..\Core\ATTPrice.mqh"
 #include "..\Core\ATTIndicator.mqh"
 #include "..\Core\ATTBalance.mqh"
+#include "..\Core\ATTMath.mqh"
 
 //+------------------------------------------------------------------------------------------------------+
 //| algo1.mq5                                                                                            |
@@ -24,8 +25,6 @@ input int shortPeriod = 1;             // Moving Avarage - Short
 input int longPeriod = 5;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
 input double factor = 100;             // Points used to open future price order
-input double pointsLoss = 100;          // Default stop loss
-input double pointsProfit = 500;       // Default stop gain
 input double dailyLoss = 200;          // Daily loss limit (per contract)
 input double dailyProfit = 100;        // Daily profit limit (per contract)
 
@@ -36,15 +35,10 @@ ATTTrade _ATTTrade;
 ATTPrice _ATTPrice;
 ATTIndicator _ATTIndicator;
 ATTBalance _ATTBalance;
+ATTMath _ATTMath;
 
 ulong orderIdBuy = 0;             // Current open ticket
 ulong orderIdSell = 0;            // Current open ticket
-double priceBid = 0.0;           // Current bid price
-double priceAsk = 0.0;           // Current ask price
-double shortMovingAvarage = 0;   // Short moving avarage 
-double longMovingAvarage = 0;    // Long moving avarage
-double priceLoss = 0.0;          // Stop loss for current trade
-double priceProfit = 0.0;        // Profit value for current trade
 double initialBalance = 0.0;     // Used to limit profit and loss in daily basis
 
 //
@@ -71,35 +65,55 @@ void OnDeinit(const int reason) {
 //
 void OnTick()
 {
+
+   double shortMovingAvarage = 0;   // Short moving avarage 
+   double longMovingAvarage = 0;    // Long moving avarage
+   double priceBid = 0.0;           // Current bid price
+   double priceAsk = 0.0;           // Current ask price   
+
    // Get current prices
    priceBid = _ATTPrice.GetBid(assetCode);
    priceAsk = _ATTPrice.GetAsk(assetCode);
    
    // If no price, something is wrong - stop everything
    if (priceBid==0.0 || priceAsk==0.0) {
-      //ExpertRemove();
-      //Alert("No price available for ", assetCode, ". Exiting program");
+      ExpertRemove();
+      Alert("No price available for ", assetCode, ". Exiting program");
    }
 
    // if result touch the limits - stop everything  
-   if (_ATTBalance.IsResultOverLimits(initialBalance, dailyLoss, dailyProfit)) {
-       //ExpertRemove();
-       //Alert("Daily limits were achieved");
-   }
+   if (_ATTBalance.IsResultOverLimits(initialBalance, dailyLoss, dailyProfit) == false) {
 
-   // Calculate EMA for short and long period
-   shortMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, shortPeriod);
-   longMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, longPeriod);
+      // Do not open more than one position at a time
+      if (PositionsTotal() == 0) {
+         
+         // Calculate EMA for short and long period
+         shortMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, shortPeriod);
+         longMovingAvarage = _ATTIndicator.CalculateMovingAvarage(assetCode, chartTime, longPeriod);
+         
+         // Strategy 1: open long positions after crossing
+         TradeOnCrossing(priceBid, priceAsk, shortMovingAvarage, longMovingAvarage);     
+      }
+   }
    
+}
+
+void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage, double longMovingAvarage) {
+
+   // General declaration
+   double price = 0;
+   double priceLoss = 0.0;          // Stop loss for current trade
+   double priceProfit = 0.0;        // Profit value for current trade
+
    // Crossing up
    if ((shortMovingAvarage) > longMovingAvarage) {
 
       orderIdSell = _ATTTrade.DeleteOrder(orderIdSell);      
-      if (orderIdBuy == 0) {
-         priceAsk = priceAsk + factor;
-         priceLoss = _ATTPrice.GetStopLoss(priceAsk, pointsLoss);
-         priceProfit = _ATTPrice.GetTakeProfit(priceBid, pointsProfit);
-         orderIdBuy = _ATTTrade.Buy(assetCode, contracts, priceAsk, priceLoss, priceProfit);
+      if (orderIdBuy == 0 && orderIdSell == 0) {
+         price = _ATTMath.Sum(priceAsk, factor*2);
+         priceLoss = _ATTMath.Subtract(priceBid, factor*1);
+         priceProfit = _ATTMath.Sum(priceBid, factor*3);
+         orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
       }
    } 
 
@@ -107,13 +121,11 @@ void OnTick()
    if (((shortMovingAvarage)) < longMovingAvarage) {
    
       _ATTTrade.DeleteOrder(orderIdBuy);      
-      if (orderIdSell == 0) {      
-         priceBid = priceBid - factor;
-         priceLoss = _ATTPrice.GetStopLoss(priceBid, pointsLoss);
-         priceProfit = _ATTPrice.GetTakeProfit(priceAsk, pointsProfit);
-         orderIdSell = _ATTTrade.Sell(assetCode, contracts, priceBid, priceLoss, priceProfit);
+      if (orderIdBuy == 0 && orderIdSell == 0) {            
+         price = _ATTMath.Subtract(priceBid, factor*2);
+         priceLoss = _ATTMath.Sum(priceAsk, factor*1);
+         priceProfit = _ATTMath.Subtract(priceAsk, factor*3);
+         orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
       }
    }
-
 }
-
