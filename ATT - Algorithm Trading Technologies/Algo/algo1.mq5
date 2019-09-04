@@ -23,7 +23,7 @@ input double contracts = 1;            // Number of Contracts
 input int shortPeriod = 1;             // Moving Avarage - Short
 input int longPeriod = 2;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
-input double factor = 50;              // Points used to open future price order
+input double points = 100;             // Default stop loss and trail unit. Price=1000, sl=900, tp=1100, 1200...
 input double dailyLoss = 0;            // Daily loss limit (per contract) - zero for no limit
 input double dailyProfit = 0;          // Daily profit limit (per contract) - zero for no limit
 
@@ -114,9 +114,9 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
    // General declaration
    double price = 0;
    double priceLoss = 0.0;          // Stop loss for current trade
-   double priceProfit = 0.0;        // Profit value for current trade
-   bool crossUp = false;              // Start openning a position on current tendence
-   bool crossDn = false;              // Start openning a position on current tendence
+   double priceProfit = 0.0;        // Not used as trading checkpoints on profit
+   bool crossUp = false;            // Start openning a position on current tendence
+   bool crossDn = false;            // Start openning a position on current tendence
       
    // Control last cross   
    if ((shortMovingAvarage) > longMovingAvarage) {
@@ -138,9 +138,8 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
    // Cross up, must cancel short orders and open long orders   
    if (crossUp) {
       if (orderIdSell == 0) {
-         price = _ATTMath.Sum(priceAsk, factor*2);
-         priceLoss = _ATTMath.Subtract(price, factor*2);
-         priceProfit = _ATTMath.Sum(price, factor*2);
+         price = _ATTPrice.GetPrice("B", priceAsk, points);
+         priceLoss = priceAsk;
          orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
       }
    } 
@@ -148,9 +147,8 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
    // Cross down, must cancel long orders and open short orders   
    if (crossDn) {      
       if (orderIdBuy == 0) {            
-         price = _ATTMath.Subtract(priceBid, factor*2);
-         priceLoss = _ATTMath.Sum(price, factor*2);
-         priceProfit = _ATTMath.Subtract(price, factor*2);
+         price = _ATTPrice.GetPrice("S", priceBid, points);
+         priceLoss = priceBid;
          orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
       }
    }

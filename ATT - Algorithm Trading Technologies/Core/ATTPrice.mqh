@@ -12,34 +12,27 @@
 //+------------------------------------------------------------------+
 class ATTPrice {
    private:
-       double GetPrice(const string symbol, const string bidOrAsk);
+       double GetBidOrAsk(const string symbol, const string bidOrAsk);
    public:
        double GetBid(const string symbol);
        double GetAsk(const string symbol);
-       double GetStopLoss(double price, double points);
-       double GetTakeProfit(double price, double points);
+       double GetPrice(const string buyOrSell, double price, double pts);
 };
 
 //+------------------------------------------------------------------+
-//| Open or close position at market price                           |
+//| Get online prices                           |
 //+------------------------------------------------------------------+
 double ATTPrice::GetBid(const string symbol) {
-   return ATTPrice::GetPrice(symbol, "BID");
+   return ATTPrice::GetBidOrAsk(symbol, "BID");
 }
 double ATTPrice::GetAsk(const string symbol) {
-   return ATTPrice::GetPrice(symbol, "ASK");
-}
-double ATTPrice::GetStopLoss(double price, double points) {
-   return NormalizeDouble(price-(points*_Point), _Digits);
-}
-double ATTPrice::GetTakeProfit(double price, double points) {
-   return NormalizeDouble(price+(points*_Point), _Digits);
+   return ATTPrice::GetBidOrAsk(symbol, "ASK");
 }
 
 //+------------------------------------------------------------------+
 //| Core logic to open and close positions at market price           |
 //+------------------------------------------------------------------+
-double ATTPrice::GetPrice(const string symbol, const string bidOrAsk) {
+double ATTPrice::GetBidOrAsk(const string symbol, const string bidOrAsk) {
 
    // General Declaration
    double price = 0.0;
@@ -58,3 +51,18 @@ double ATTPrice::GetPrice(const string symbol, const string bidOrAsk) {
    return price;
 }
 
+//+------------------------------------------------------------------+
+//| Calculate loss or profits                                        |
+//+------------------------------------------------------------------+
+double ATTPrice::GetPrice(const string buyOrSell="", double price=0.0, double pts=0.0) {
+
+   double value = 0.0;
+      
+   if (buyOrSell == "B") {
+      value=NormalizeDouble(price+(pts*_Point), _Digits);
+   } else {
+      value=NormalizeDouble(price-(pts*_Point), _Digits);   
+   }
+   
+   return value;
+}
