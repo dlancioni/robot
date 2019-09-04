@@ -22,9 +22,9 @@
 input string assetCode = "WINV19";     // Asset Code
 input double contracts = 1;            // Number of Contracts
 input int shortPeriod = 1;             // Moving Avarage - Short
-input int longPeriod = 5;              // Moving Avarage - Long
+input int longPeriod = 2;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
-input double factor = 100;             // Points used to open future price order
+input double factor = 50;              // Points used to open future price order
 input double dailyLoss = 200;          // Daily loss limit (per contract)
 input double dailyProfit = 100;        // Daily profit limit (per contract)
 
@@ -104,42 +104,46 @@ void TradeOnCrossing(double priceBid, double priceAsk, double shortMovingAvarage
    double price = 0;
    double priceLoss = 0.0;          // Stop loss for current trade
    double priceProfit = 0.0;        // Profit value for current trade
-   bool cross = false;              // Start openning a position on current tendence
+   bool crossUp = false;              // Start openning a position on current tendence
+   bool crossDn = false;              // Start openning a position on current tendence
       
    // Control last cross   
    if ((shortMovingAvarage) > longMovingAvarage) {
-      if (lastCross!="S") {cross=true;} 
-      lastCross="S";
-      Print("short: ", shortMovingAvarage, " long: ", longMovingAvarage, " Tendence: UP");
-   } else {
-      if (lastCross!="L") {cross=true;} 
-      lastCross="L";
-      Print("short: ", shortMovingAvarage, " long: ", longMovingAvarage, " Tendence: DOWN");      
-   }
-
-   // Crossing up
-   if (cross) {
-   
-      // Cross up, must cancel short orders and open long orders   
-      if ((shortMovingAvarage) > longMovingAvarage) {   
+      if (lastCross!="S") {
+         crossUp=true;
+         crossDn=false;
+         lastCross="S";
          orderIdSell = _ATTTrade.CloseAllOrders();
-         if (orderIdSell == 0) {
-            price = _ATTMath.Sum(priceAsk, factor*2);
-            priceLoss = _ATTMath.Subtract(price, factor*1);
-            priceProfit = _ATTMath.Sum(price, factor*2);
-            orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
-         }
       } 
-   
-      // Cross down, must cancel long orders and open short orders   
-      if (((shortMovingAvarage)) < longMovingAvarage) {      
+   } else {
+      if (lastCross!="L") {
+         crossUp=false;
+         crossDn=true;
+         lastCross="L";
          orderIdBuy = _ATTTrade.CloseAllOrders();
-         if (orderIdBuy == 0) {            
-            price = _ATTMath.Subtract(priceBid, factor*2);
-            priceLoss = _ATTMath.Sum(price, factor*1);
-            priceProfit = _ATTMath.Subtract(price, factor*2);
-            orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
-         }
       }
    }
+
+   Print("orderIdSell: ", orderIdSell, " orderIdBuy: ", orderIdBuy);      
+  
+   // Cross up, must cancel short orders and open long orders   
+   if (crossUp) {
+      if (orderIdSell == 0) {
+         price = _ATTMath.Sum(priceAsk, factor*2);
+         priceLoss = _ATTMath.Subtract(price, factor*2);
+         priceProfit = _ATTMath.Sum(price, factor*2);
+         orderIdBuy = _ATTTrade.Buy(assetCode, contracts, price, priceLoss, priceProfit);
+      }
+   } 
+
+   // Cross down, must cancel long orders and open short orders   
+   if (crossDn) {      
+      if (orderIdBuy == 0) {            
+         price = _ATTMath.Subtract(priceBid, factor*2);
+         priceLoss = _ATTMath.Sum(price, factor*2);
+         priceProfit = _ATTMath.Subtract(price, factor*2);
+         orderIdSell = _ATTTrade.Sell(assetCode, contracts, price, priceLoss, priceProfit);
+      }
+   }
+
 }
