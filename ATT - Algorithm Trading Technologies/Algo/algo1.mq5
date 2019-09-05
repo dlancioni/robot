@@ -111,7 +111,6 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
    double priceProfit = 0.0;        // Not used as trading checkpoints on profit
    bool crossUp = false;            // Start openning a position on current tendence
    bool crossDn = false;            // Start openning a position on current tendence
-   double margin = 0.0;
    
    // Do not open more than one position at a time
    if (PositionsTotal() == 0) {
@@ -152,12 +151,9 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
       }
    } else {
    
-      // Define a difference to trigger next stop
-      margin = (2*Point());
-   
       // Handle dinamic stop on buy
       if (orderIdBuy>0) {
-         if (priceBid > (priceLoss + margin)) {
+         if (priceBid > priceLoss) {
             priceLoss = _ATTPrice.Sum(priceLoss, points);
             _ATTTrade.ModifyPosition(orderIdBuy, priceLoss, 0.00);
          }
@@ -165,7 +161,7 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
 
       // Handle dinamic stop on sell      
       if (orderIdSell>0) {
-         if (priceAsk < (priceLoss - margin)) {
+         if (priceAsk < priceLoss) {
             priceLoss = _ATTPrice.Subtract(priceLoss, points);
             _ATTTrade.ModifyPosition(orderIdSell, priceLoss, 0.00);
          }      
