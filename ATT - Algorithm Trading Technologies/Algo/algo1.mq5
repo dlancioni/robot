@@ -64,7 +64,7 @@ int OnInit() {
 // Something went wrong, lets stop everything
 //
 void OnDeinit(const int reason) {
-    Alert(TimeCurrent(),": " ,__FUNCTION__," Reason code = ", reason); 
+    Print(TimeCurrent(),": " ,__FUNCTION__," Reason code = ", reason); 
 }
 
 //
