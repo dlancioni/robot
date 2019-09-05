@@ -23,7 +23,7 @@ input double contracts = 1;            // Number of Contracts
 input int shortPeriod = 1;             // Moving Avarage - Short
 input int longPeriod = 2;              // Moving Avarage - Long
 input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
-input double points = 10;             // Default stop loss and trail unit. Price=1000, sl=900, tp=1100, 1200...
+input double points = 100;             // Default stop loss and trail unit. Price=1000, sl=900, tp=1100, 1200...
 input double dailyLoss = 0;            // Daily loss limit (per contract) - zero for no limit
 input double dailyProfit = 0;          // Daily profit limit (per contract) - zero for no limit
 
@@ -144,7 +144,7 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
             if (orderIdSell == 0) {
                priceProfit = 0.0;
                priceDeal = _ATTPrice.Sum(priceAsk, points);
-               priceLoss = priceAsk;
+               priceLoss = _ATTPrice.Subtract(priceAsk, points);
                priceProfit = _ATTPrice.Sum(priceDeal, points);
                orderIdBuy = _ATTTrade.Buy(assetCode, contracts, priceDeal, priceLoss, DINAMIC_PROFIT);
             }
@@ -155,16 +155,15 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
             if (orderIdBuy == 0) {        
                priceProfit = 0.0;         
                priceDeal = _ATTPrice.Subtract(priceBid, points);
-               priceLoss = priceBid;
+               priceLoss = _ATTPrice.Sum(priceBid, points);
                priceProfit = _ATTPrice.Subtract(priceDeal, points);
                orderIdSell = _ATTTrade.Sell(assetCode, contracts, priceDeal, priceLoss, DINAMIC_PROFIT);
             }
          }      
-      }
-      
-      
+      }      
+            
    } else {
-   
+      
       // Set take profit as stop loss (duplicate the target)      
       if (orderIdBuy>0) {            
          if (priceBid > priceProfit) {
