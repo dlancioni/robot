@@ -22,8 +22,8 @@
 input double contracts = 1;            // Number of Contracts
 input int shortPeriod = 1;             // Moving Avarage - Short
 input int longPeriod = 2;              // Moving Avarage - Long
-input ENUM_TIMEFRAMES chartTime = 5;   // Chart Time (M1, M5, M15)
-input double points = 100;             // Default stop loss and trail unit. Price=1000, sl=900, tp=1100, 1200...
+input ENUM_TIMEFRAMES chartTime = 2;   // Chart Time (M1, M5, M15)
+input double points = 10;              // Default stop loss and trail unit. Price=1000, sl=900, tp=1100, 1200...
 input double dailyLoss = 0;            // Daily loss limit (per contract) - zero for no limit
 input double dailyProfit = 0;          // Daily profit limit (per contract) - zero for no limit
 
@@ -163,6 +163,9 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
       }      
             
    } else {
+
+
+      Print("Profit: ", priceProfit);
       
       // Set take profit as stop loss (duplicate the target)      
       if (orderIdBuy>0) {            
@@ -176,7 +179,7 @@ void TradeOnMovingAvarageCross(double priceBid, double priceAsk, double shortMov
       if (orderIdSell>0) {
          if (priceAsk < priceProfit) {
             priceLoss = priceProfit;
-            _ATTTrade.ModifyPosition(orderIdBuy, priceLoss, DINAMIC_PROFIT);
+            _ATTTrade.ModifyPosition(orderIdSell, priceLoss, DINAMIC_PROFIT);
             priceProfit = _ATTPrice.Subtract(priceProfit, points);
          }      
       }
