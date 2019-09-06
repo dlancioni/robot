@@ -1,3 +1,5 @@
+#include <Trade\Trade.mqh>
+
 //+------------------------------------------------------------------+
 //|                                                     ATTPrice.mqh |
 //|                        Copyright 2019, MetaQuotes Software Corp. |
@@ -10,24 +12,8 @@
 //+------------------------------------------------------------------+
 //| Pricing related methods (bid/ask, gain/loss, etc                 |
 //+------------------------------------------------------------------+
-class ATTPrice {
+class ATTSymbol : public CSymbolInfo {
    private:
    public:
-       double Sum(double value, double pts);
-       double Subtract(double value, double pts);
 };
 
-//+------------------------------------------------------------------+
-//| Calculate loss or profits                                        |
-//+------------------------------------------------------------------+
-double ATTPrice::Sum(double price=0.0, double pts=0.0) {
-   double value = 0.0;
-   value=NormalizeDouble(price+(pts*Point()), _Digits);   
-   return value;
-}
-
-double ATTPrice::Subtract(double price=0.0, double pts=0.0) {
-   double value = 0.0;
-   value=NormalizeDouble(price-(pts*Point()), _Digits);   
-   return value;
-}
