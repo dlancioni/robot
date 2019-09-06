@@ -1,5 +1,7 @@
 #include <Trade\Trade.mqh>
 
+// https://www.mql5.com/pt/docs/standardlibrary/tradeclasses/ctrade
+
 //+------------------------------------------------------------------+
 //|                                                     ATTTrade.mqh |
 //|                        Copyright 2019, MetaQuotes Software Corp. |
