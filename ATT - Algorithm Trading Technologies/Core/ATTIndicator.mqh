@@ -29,7 +29,7 @@ class ATTIndicator {
 //| Core logic to open and close positions at market price           |
 //+------------------------------------------------------------------+
 double ATTIndicator::CalculateMovingAvarage(const string symbol,
-                                            ENUM_TIMEFRAMES timeFrame,
+                                            ENUM_TIMEFRAMES _timeFrame,
                                             int periods,
                                             int period=1, // most recent candle
                                             ENUM_MA_METHOD method = MODE_EMA,
@@ -41,7 +41,7 @@ double ATTIndicator::CalculateMovingAvarage(const string symbol,
    int startingPeriod = 0;
 
    // Get MA definition
-   int movingAvarageDefinition = iMA(symbol, timeFrame, periods, startingPeriod, method, appliedPrice);      
+   int movingAvarageDefinition = iMA(symbol, _timeFrame, periods, startingPeriod, method, appliedPrice);      
    
    // Set the ma for each candle
    CopyBuffer(movingAvarageDefinition, 0, startingPeriod, periods, movingAvarage);
