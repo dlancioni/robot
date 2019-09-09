@@ -97,7 +97,7 @@ void ATTPosition::TrailingStop() {
                ATTPosition::ModifyPosition(tid, sl, tp);
             }            
          } else {        
-            price = __ATTPrice.Sum(bid, pts);
+            price = __ATTPrice.Subtract(bid, pts);
             if (ask < price) {
                sl = __ATTPrice.Subtract(sl, pts);
                tp = __ATTPrice.Subtract(tp, pts);            
