@@ -66,6 +66,7 @@ void ATTPosition::TrailingStop() {
    double ask = 0.0;
    double pts = 0.0;
    ulong type = 0.0;
+   double step = 0.0;
       
    ATTSymbol __ATTSymbol;
    ATTPrice __ATTPrice;
@@ -87,20 +88,21 @@ void ATTPosition::TrailingStop() {
          
          // Set default checkpoint value
          pts = MathAbs(((tp - po) * Point()));
+         step = MathAbs(pts/4);
 
          // Move the stops higher or lowers
          if (type == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
-            price = __ATTPrice.Sum(sl, pts+(pts/2));
+            price = __ATTPrice.Sum(sl+pts,step);
             if (bid > price) {
-               sl = __ATTPrice.Sum(sl, pts/4);
-               tp = __ATTPrice.Sum(tp, pts/4);
+               sl = __ATTPrice.Sum(sl, step);
+               tp = __ATTPrice.Sum(tp, step);
                ATTPosition::ModifyPosition(tid, sl, tp);
-            }            
+            }
          } else {        
-            price = __ATTPrice.Subtract(sl, pts-(pts/2));
+            price = __ATTPrice.Subtract(sl-pts, step);
             if (ask < price) {
-               sl = __ATTPrice.Subtract(sl, pts/4);
-               tp = __ATTPrice.Subtract(tp, pts/4);            
+               sl = __ATTPrice.Subtract(sl, step);
+               tp = __ATTPrice.Subtract(tp, step);            
                ATTPosition::ModifyPosition(tid, sl, tp);
             }      
          }        
