@@ -23,8 +23,8 @@ class ATTOrder : public CTrade {
        ulong Buy(_ORDER_TYPE type, const string symbol, double qtt, double price, double sl, double tp);
        ulong Sell(_ORDER_TYPE type, const string symbol, double qtt, double price, double sl, double tp);
 
-       ulong DeleteOrder(ulong tid);
        ulong CloseAllOrders();
+       ulong OrderCount(string _symbol);
 };
 
 //+------------------------------------------------------------------+
@@ -94,21 +94,6 @@ ulong ATTOrder::Order(_ORDER_TYPE type, const string bs, const string symbol=NUL
    return tid;
 }
 
-
-//+------------------------------------------------------------------+
-//| Close all open positions at market price                         |
-//+------------------------------------------------------------------+
-ulong ATTOrder::DeleteOrder(ulong tid) {
-    CTrade trade;    
-    
-    if (tid > 0) {
-       if (OrdersTotal() > 0) {
-           trade.OrderDelete(tid);
-       }
-    }
-    return 0;
-}
-
 //+------------------------------------------------------------------+
 //| Close all open orders                                            |
 //+------------------------------------------------------------------+
@@ -116,15 +101,43 @@ ulong ATTOrder::CloseAllOrders() {
 
     // General Declaration
     CTrade trade;
-    ulong id = 0;
+    ulong tid = 0;
 
     // Close open positions
-     for (int i=OrdersTotal()-1; i>=0; i--) {
-	      id = OrderGetTicket(i);
-         if (PositionGetSymbol(i) == Symbol()) {	      
-	         trade.OrderDelete(id);
-	      }
+     for (int i=OrdersTotal()-1; i>=0; i--) {     
+	     tid = OrderGetTicket(i);	     
+        if (OrderSelect(tid)) {        
+           if (OrderGetString(ORDER_SYMBOL) == Symbol()) {
+   	         trade.OrderDelete(tid);
+  	        }  	        
+        }
      }
      
      return 0;   
+}
+
+//+------------------------------------------------------------------+
+//| Close all open orders                                            |
+//+------------------------------------------------------------------+
+ulong ATTOrder::OrderCount(string _symbol) {
+
+    // General Declaration
+    CTrade trade;
+    ulong tid = 0;
+    ulong count = 0;
+
+    // Close open positions
+     for (int i=OrdersTotal()-1; i>=0; i--) {     
+	     tid = OrderGetTicket(i);	     
+        if (OrderSelect(tid)) { 
+           if (_symbol == "") {
+               count++;
+           } else {
+              if (OrderGetString(ORDER_SYMBOL) == _symbol) {
+      	         count++;
+     	        }
+  	        }
+        }
+     }
+     return count;
 }
