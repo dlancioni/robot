@@ -97,8 +97,8 @@ void ATTPosition::TrailingStop() {
             dealType = PositionGetInteger(POSITION_TYPE);
 
             // Set default checkpoint value
-            pointsTrade = _ATTPrice.GetPoints(stopLoss, takeProfit);
-            pointsStep = MathAbs(pointsTrade/5);
+            pointsTrade = MathAbs(_ATTPrice.GetPoints(stopLoss, priceDeal));
+            pointsStep = MathAbs(pointsTrade / 5);
 
             // Move the stops higher or lowers
             if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
