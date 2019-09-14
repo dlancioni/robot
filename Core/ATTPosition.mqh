@@ -114,6 +114,10 @@ void ATTPosition::TrailStop(bool trailStopLoss, bool trailStopProfit) {
                      }
                   }
                }
+               
+               if (trailStopProfit) {
+               
+               }
 
             } else {
                         
@@ -124,6 +128,11 @@ void ATTPosition::TrailStop(bool trailStopLoss, bool trailStopProfit) {
                      }
                   }
                }
+               
+               if (trailStopProfit) {
+               
+               }               
+               
             }
          }
       }
