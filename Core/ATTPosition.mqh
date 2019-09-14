@@ -74,14 +74,18 @@ bool ATTPosition::ModifyPosition(ulong id=0, double sl=0.0, double tp=0.0) {
 void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
 
    // General Declaration
+   double bid = 0.0;
+   double ask = 0.0;
    ulong ticketId = 0;
    double priceDeal = 0.0;
    double stopLoss = 0.0;
    double takeProfit = 0.0;
    ulong dealType = 0.0;
    double pointsLoss = 0.0;
+   double pointsProfit = 0.0;   
    double contracts = 0.0;
-   double trailingPointsLoss = 0.0;
+   double points = 0.0;
+   double price = 0.0;
       
    ATTSymbol _ATTSymbol;
    ATTPrice _ATTPrice;
@@ -102,41 +106,78 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
             stopLoss = PositionGetDouble(POSITION_SL);
             takeProfit = PositionGetDouble(POSITION_TP);
             dealType = PositionGetInteger(POSITION_TYPE);
-            contracts = PositionGetDouble(POSITION_VOLUME);
+            contracts = PositionGetDouble(POSITION_VOLUME);           
+            bid = _ATTSymbol.Bid();
+            ask = _ATTSymbol.Ask();
 
-            // Set default checkpoint value
-            pointsLoss = MathAbs(_ATTPrice.GetPoints(stopLoss, priceDeal));
-
-            // Move the stops higher or lowers
-            if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
-
-               if (trailStop == _TRAIL_STOP::LOSS || trailStop == _TRAIL_STOP::BOTH) {
+            // Dinamic stop loss
+            if (trailStop == _TRAIL_STOP::LOSS || trailStop == _TRAIL_STOP::BOTH) {
+            
+               // Define points to trail stop loss
+               pointsLoss = MathAbs(_ATTPrice.GetPoints(stopLoss, priceDeal));
+               points = (pointsLoss / 4);
+            
+               if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
                   if (stopLoss < priceDeal) {
-                     if (_ATTSymbol.Bid() > _ATTPrice.Sum(stopLoss, (pointsLoss + trailingPointsLoss))) {
-                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Sum(stopLoss, trailingPointsLoss), takeProfit);
+                     if (bid > _ATTPrice.Sum(stopLoss, (pointsLoss + points))) {
+                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Sum(stopLoss, points), takeProfit);
                      }
                   }
-               }
-               
-               if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
-               
-               }
-
-            } else {
-                        
-               if (trailStop == _TRAIL_STOP::LOSS || trailStop == _TRAIL_STOP::BOTH) {
+               } else {
                   if (stopLoss > priceDeal) {
-                     if (_ATTSymbol.Ask() < _ATTPrice.Subtract(stopLoss, (pointsLoss + trailingPointsLoss))) {
-                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Subtract(stopLoss, trailingPointsLoss), takeProfit);
+                     if (_ATTSymbol.Ask() < _ATTPrice.Subtract(stopLoss, (pointsLoss + points))) {
+                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Subtract(stopLoss, points), takeProfit);
                      }
                   }
                }
-               
-               if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
-               
-               }               
-               
             }
+
+            // Dinamic take profit
+            if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
+            
+               // Define points to trail stop loss
+               pointsProfit = MathAbs(_ATTPrice.GetPoints(takeProfit, priceDeal));
+               points = (pointsProfit / 3);
+            
+               // If bid is 150% higher than position, set a close order as 100% (inverted exponential logic)
+               if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {               
+                  if (bid > _ATTPrice.Sum(ATTPosition::trailPrice, (pointsProfit + points))) {                  
+                     if (ATTPosition::trailTicket == 0) {
+                        ATTPosition::trailTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTPrice.Sum(ATTPosition::trailPrice, pointsProfit), 0, 0);
+                     } else {
+                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTPrice.Sum(ATTPosition::trailPrice, pointsProfit), bid, 0);
+                     }                     
+                     ATTPosition::trailPrice = bid;
+                  }
+               } else {
+                  if (ask < _ATTPrice.Subtract(ATTPosition::trailPrice, (pointsProfit - points))) {                  
+                     if (ATTPosition::trailTicket == 0) {
+                        ATTPosition::trailTicket = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTPrice.Subtract(ATTPosition::trailPrice, pointsProfit), 0, 0);
+                     } else {
+                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTPrice.Subtract(ATTPosition::trailPrice, pointsProfit), ask, 0);
+                     }                     
+                     ATTPosition::trailPrice = ask;
+                  }               
+               }            
+            }
+
+
+
+
+/*              
+               if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {                  
+                  if (bid > ) {
+                     ATTPosition::trailPrice = bid;
+                     if (ATTPosition::trailTicket == 0) {
+                        ATTPosition::trailTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTSymbol.Bid(), 0, 0);
+                     } else {
+                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTSymbol.Bid(), 0, 0));
+                     }
+                     
+                  }               
+               }
+*/
+  
          }
       }
    }
