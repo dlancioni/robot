@@ -24,8 +24,9 @@ class ATTPosition : public CPositionInfo {
    public:
       ATTPosition();
       ~ATTPosition();
-      ulong trailTicket;
-      double trailPrice;
+      ulong trailingTicket;
+      double trailingPrice;
+      double trailingPoints;
       void CloseAllPositions();
       void TrailStop(_TRAIL_STOP trailStop);
 };
@@ -34,12 +35,14 @@ class ATTPosition : public CPositionInfo {
 //| Constructor/Destructor                                        |
 //+------------------------------------------------------------------+
 ATTPosition::ATTPosition() {
-   ATTPosition::trailTicket = 0;
-   ATTPosition::trailPrice = 0.0;
+   ATTPosition::trailingTicket = 0;
+   ATTPosition::trailingPrice = 0.0;
+   ATTPosition::trailingPoints = 0.0;
 }
 ATTPosition::~ATTPosition() {
-   ATTPosition::trailTicket = 0;
-   ATTPosition::trailPrice = 0.0;   
+   ATTPosition::trailingTicket = 0;
+   ATTPosition::trailingPrice = 0.0;
+   ATTPosition::trailingPoints = 0.0;
 }
 
 //+------------------------------------------------------------------+
@@ -85,7 +88,8 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
    double pointsProfit = 0.0;   
    double contracts = 0.0;
    double points = 0.0;
-   double price = 0.0;
+   double priceStep = 0.0;
+   double priceStop = 0.0;
       
    ATTSymbol _ATTSymbol;
    ATTPrice _ATTPrice;
@@ -132,32 +136,42 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
                }
             }
 
-            // Dinamic take profit
+            // Define points to trail stop loss
             if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
-            
-               // Define points to trail stop loss
-               pointsProfit = MathAbs(_ATTPrice.GetPoints(takeProfit, priceDeal));
-               points = (pointsProfit / 3);
-            
-               // If bid is 150% higher than position, set a close order as 100% (inverted exponential logic)
-               if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {               
-                  if (bid > _ATTPrice.Sum(ATTPosition::trailPrice, (pointsProfit + points))) {                  
-                     if (ATTPosition::trailTicket == 0) {
-                        ATTPosition::trailTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTPrice.Sum(ATTPosition::trailPrice, pointsProfit), 0, 0);
+
+               // When bid is 150% greater than price, put a close order            
+               pointsProfit = MathAbs(ATTPosition::trailingPoints/2);
+               points = MathAbs((pointsProfit / 2));
+               
+               if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
+               
+                  priceStep = _ATTPrice.Sum(ATTPosition::trailingPrice, (pointsProfit + points));
+                  priceStop = _ATTPrice.Sum(ATTPosition::trailingPrice, pointsProfit);
+
+                  if (bid > priceStep) {
+                     if (ATTPosition::trailingTicket == 0) {
+                        ATTPosition::trailingTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, bid, 0);
                      } else {
-                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTPrice.Sum(ATTPosition::trailPrice, pointsProfit), bid, 0);
-                     }                     
-                     ATTPosition::trailPrice = bid;
+                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, bid, 0);
+                     }
+                     
+                     ATTPosition::trailingPrice = bid;
                   }
+
                } else {
-                  if (ask < _ATTPrice.Subtract(ATTPosition::trailPrice, (pointsProfit - points))) {                  
-                     if (ATTPosition::trailTicket == 0) {
-                        ATTPosition::trailTicket = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTPrice.Subtract(ATTPosition::trailPrice, pointsProfit), 0, 0);
+               
+                  priceStep = _ATTPrice.Subtract(ATTPosition::trailingPrice, (pointsProfit - points));
+                  priceStop = _ATTPrice.Subtract(ATTPosition::trailingPrice, pointsProfit);
+
+                  if (ask < priceStep) {
+                     if (ATTPosition::trailingTicket == 0) {
+                        ATTPosition::trailingTicket = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, ask, 0);
                      } else {
-                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTPrice.Subtract(ATTPosition::trailPrice, pointsProfit), ask, 0);
-                     }                     
-                     ATTPosition::trailPrice = ask;
-                  }               
+                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, ask, 0);
+                     }
+                     
+                     ATTPosition::trailingPrice = ask;
+                  }
                }            
             }  
          }

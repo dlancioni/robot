@@ -83,11 +83,13 @@ string ATTValidator::ValidateStops(_TRAIL_STOP trailStop, double pointsLoss, dou
       value = "StopLoss is mandatory";
       
    if (pointsProfit < 0)
-      value = "TakeProfit cannot be negative";
+      value = "TakeProfit is mandatory";
       
    if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
-      if (pointsProfit > pointsLoss) {
-         value = "Trailing stop profit is selected, points loss must be greater than points profit";
+      if (pointsProfit > 0) {
+         if (pointsProfit < (pointsLoss * 3)) {
+            value = "Trailing stop profit is selected, points profit must be at least 3 x greater than points loss or zero for unlimited profit";
+         }
       }
    }
 
