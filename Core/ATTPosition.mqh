@@ -159,43 +159,8 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
                      ATTPosition::trailPrice = ask;
                   }               
                }            
-            }
-
-
-
-
-/*              
-               if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {                  
-                  if (bid > ) {
-                     ATTPosition::trailPrice = bid;
-                     if (ATTPosition::trailTicket == 0) {
-                        ATTPosition::trailTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTSymbol.Bid(), 0, 0);
-                     } else {
-                        _ATTOrder.AmmendOrder(ATTPosition::trailTicket, _ATTSymbol.Bid(), 0, 0));
-                     }
-                     
-                  }               
-               }
-*/
-  
+            }  
          }
       }
    }
-}      
-
-
-
-
-/*
-               
-               // Decrease profit after 50% profit
-               if (_ATTSymbol.Ask() < _ATTPrice.Subtract(takeProfit/2, trailingPoints)) {
-                  if (ATTPosition::ticketTrailing == 0) {
-                     ATTPosition::ticketTrailing = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, _ATTSymbol.Ask(), 0, 0);
-                  } else {
-                     if (!_ATTOrder.AmmendOrder(ATTPosition::ticketTrailing, _ATTSymbol.Ask(), 0, 0)) {
-                        ATTPosition::CloseAllPositions();
-                     }
-                  }
-               }
-*/               
+}
