@@ -140,7 +140,7 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
             if (trailStop == _TRAIL_STOP::PROFIT || trailStop == _TRAIL_STOP::BOTH) {
 
                // When bid is 150% greater than price, put a close order            
-               pointsProfit = MathAbs(ATTPosition::trailingPoints/2);
+               pointsProfit = MathAbs(ATTPosition::trailingPoints / 2);
                points = MathAbs((pointsProfit / 2));
                
                if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
@@ -150,9 +150,9 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
 
                   if (bid > priceStep) {
                      if (ATTPosition::trailingTicket == 0) {
-                        ATTPosition::trailingTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, bid, 0);
+                        ATTPosition::trailingTicket = _ATTOrder.Sell(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, 0, 0);
                      } else {
-                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, bid, 0);
+                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, 0, 0);
                      }
                      
                      ATTPosition::trailingPrice = bid;
@@ -165,9 +165,9 @@ void ATTPosition::TrailStop(_TRAIL_STOP trailStop) {
 
                   if (ask < priceStep) {
                      if (ATTPosition::trailingTicket == 0) {
-                        ATTPosition::trailingTicket = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, ask, 0);
+                        ATTPosition::trailingTicket = _ATTOrder.Buy(_ORDER_TYPE::LIMIT, Symbol(), contracts, priceStop, 0, 0);
                      } else {
-                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, ask, 0);
+                        _ATTOrder.AmmendOrder(ATTPosition::trailingTicket, priceStop, 0, 0);
                      }
                      
                      ATTPosition::trailingPrice = ask;
