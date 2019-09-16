@@ -66,7 +66,7 @@ bool ATTPosition::ModifyPosition(ulong id=0, double sl=0.0, double tp=0.0) {
 //+------------------------------------------------------------------+
 //| Handle dinamic stops                                             |
 //+------------------------------------------------------------------+
-void ATTPosition::TrailStop(double trailingLoss, double tralingProfit, double tralingProfitStep) {
+void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double tralingProfitStep) {
 
    // General Declaration
    double bid = 0.0;
@@ -129,7 +129,7 @@ void ATTPosition::TrailStop(double trailingLoss, double tralingProfit, double tr
             }
 
             // Define points to trail stop profit, zero means no trailing
-            if (tralingProfit > 0 && tralingProfitStep > 0) {
+            if (trailingProfit > 0 && tralingProfitStep > 0) {
                if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
                   if (bid > trailingPrice) {
                      trailingPrice = bid;
