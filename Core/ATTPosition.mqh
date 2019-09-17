@@ -24,7 +24,8 @@ class ATTPosition : public CPositionInfo {
    public:
       ATTPosition();
       ~ATTPosition();
-      double trailingPrice;
+      double level1;
+      double level2;
       void CloseAllPositions();
       void TrailStop(double, double, double);
 };
@@ -66,7 +67,7 @@ bool ATTPosition::ModifyPosition(ulong id=0, double sl=0.0, double tp=0.0) {
 //+------------------------------------------------------------------+
 //| Handle dinamic stops                                             |
 //+------------------------------------------------------------------+
-void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double tralingProfitStep) {
+void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double trailingProfitStep) {
 
    // General Declaration
    double bid = 0.0;
@@ -129,14 +130,28 @@ void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double t
             }
 
             // Define points to trail stop profit, zero means no trailing
-            if (trailingProfit > 0 && tralingProfitStep > 0) {
+            if (trailingProfit > 0 && trailingProfitStep > 0) {
                if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
-                  if (bid > trailingPrice) {
-                     trailingPrice = bid;
+                  // Accumulate level 1 as price goes up
+                  if (bid > _ATTPrice.Sum(priceDeal, trailingProfit)) {
+                     level1 = bid;
+                     level2 = _ATTPrice.Subtract(bid, trailingProfitStep);
+                  }
+                  // if prices get back, close positions
+                  if (bid < level2 && level2 > priceDeal) {
+                     ATTPosition::CloseAllPositions();
+                     Print("Didn't touch stop profit and get back: ", ticketId);
                   }
                } else {
-                  if (ask < trailingPrice) {
-                     trailingPrice = bid;
+                  // Accumulate level 1 as price goes up
+                  if (ask < _ATTPrice.Subtract(priceDeal, trailingProfit)) {
+                     level1 = ask;
+                     level2 = _ATTPrice.Sum(ask, trailingProfitStep);
+                  }
+                  // if prices get back, close positions
+                  if (ask < level2 && level2 < priceDeal) {
+                     ATTPosition::CloseAllPositions();
+                     Print("Didn't touch stop profit and get back: ", ticketId);
                   }
                }
             }
