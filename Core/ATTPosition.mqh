@@ -27,7 +27,7 @@ class ATTPosition : public CPositionInfo {
       double level1;
       double level2;
       void CloseAllPositions();
-      void TrailStop(double, double, double);
+      void TrailStop(double, double, double, double);
 };
 
 //+------------------------------------------------------------------+
@@ -67,7 +67,7 @@ bool ATTPosition::ModifyPosition(ulong id=0, double sl=0.0, double tp=0.0) {
 //+------------------------------------------------------------------+
 //| Handle dinamic stops                                             |
 //+------------------------------------------------------------------+
-void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double trailingProfitStep) {
+void ATTPosition::TrailStop(double pointsLoss, double trailingLoss, double trailingProfit, double trailingProfitStep) {
 
    // General Declaration
    double bid = 0.0;
@@ -77,7 +77,6 @@ void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double t
    double stopLoss = 0.0;
    double takeProfit = 0.0;
    ulong dealType = 0.0;
-   double pointsLoss = 0.0;
    double pointsProfit = 0.0;   
    double contracts = 0.0;
    double points = 0.0;
@@ -108,22 +107,17 @@ void ATTPosition::TrailStop(double trailingLoss, double trailingProfit, double t
             ask = _ATTSymbol.Ask();
 
             // Dinamic stop loss, zero means no trailing
-            if (trailingLoss > 0) {
-            
-               // Define points to trail stop loss
-               pointsLoss = trailingLoss;
-               points = (pointsLoss / 4);
-            
+            if (trailingLoss > 0) {            
                if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
                   if (stopLoss < priceDeal) {
-                     if (bid > _ATTPrice.Sum(stopLoss, (pointsLoss + points))) {
-                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Sum(stopLoss, points), takeProfit);
+                     if (bid > _ATTPrice.Sum(stopLoss, (pointsLoss + trailingLoss))) {
+                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Sum(stopLoss, trailingLoss), takeProfit);
                      }
                   }
                } else {
                   if (stopLoss > priceDeal) {
-                     if (_ATTSymbol.Ask() < _ATTPrice.Subtract(stopLoss, (pointsLoss + points))) {
-                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Subtract(stopLoss, points), takeProfit);
+                     if (_ATTSymbol.Ask() < _ATTPrice.Subtract(stopLoss, (pointsLoss + trailingLoss))) {
+                        ATTPosition::ModifyPosition(ticketId, _ATTPrice.Subtract(stopLoss, trailingLoss), takeProfit);
                      }
                   }
                }

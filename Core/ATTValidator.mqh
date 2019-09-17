@@ -84,7 +84,7 @@ string ATTValidator::ValidateStops(double trailingLoss, double tralingProfit, do
    }
 
    if (tralingProfit > 0) {
-      if (tralingProfitStep >= 0) {
+      if (tralingProfitStep <= 0) {
          value = "TakeProfit is mandatory";
       }      
    }
