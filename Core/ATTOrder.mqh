@@ -106,7 +106,6 @@ bool ATTOrder::AmmendOrder(ulong ticket, double price, double sl, double tp) {
    return trade.OrderModify(ticket, price, sl, tp, 0, 0, 0);
 }
 
-
 //+------------------------------------------------------------------+
 //| Close all open orders                                            |
 //+------------------------------------------------------------------+

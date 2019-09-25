@@ -72,7 +72,6 @@ void ATTPosition::TrailStop(double pointsLoss, double trailingLoss, double trail
    // General Declaration
    double bid = 0.0;
    double ask = 0.0;
-   double mid = 0.0;
    ulong ticketId = 0;
    double priceDeal = 0.0;
    double stopLoss = 0.0;
@@ -106,19 +105,18 @@ void ATTPosition::TrailStop(double pointsLoss, double trailingLoss, double trail
             contracts = PositionGetDouble(POSITION_VOLUME);           
             bid = _ATTSymbol.Bid();
             ask = _ATTSymbol.Ask();
-            mid = (bid + ask) / 2;
 
             // Dinamic stop loss, zero means no trailing
             if (trailingLoss > 0) {            
                if (dealType == ENUM_POSITION_TYPE::POSITION_TYPE_BUY) {
                   if (stopLoss < priceDeal) {
-                     if (mid > _ATTPrice.Sum(stopLoss, (pointsLoss + trailingLoss))) {
+                     if (bid > _ATTPrice.Sum(stopLoss, (pointsLoss + trailingLoss))) {
                         ATTPosition::ModifyPosition(ticketId, _ATTPrice.Sum(stopLoss, trailingLoss), takeProfit);
                      }
                   }
                } else {
                   if (stopLoss > priceDeal) {
-                     if (mid < _ATTPrice.Subtract(stopLoss, (pointsLoss + trailingLoss))) {
+                     if (ask < _ATTPrice.Subtract(stopLoss, (pointsLoss + trailingLoss))) {
                         ATTPosition::ModifyPosition(ticketId, _ATTPrice.Subtract(stopLoss, trailingLoss), takeProfit);
                      }
                   }
@@ -131,37 +129,40 @@ void ATTPosition::TrailStop(double pointsLoss, double trailingLoss, double trail
                   // First interaction
                   if (level1 == 0 && level2 == 0) {
                      level1 = priceDeal;
-                     level2 = _ATTPrice.Subtract(mid, trailingProfitStep);
+                     level2 = _ATTPrice.Subtract(bid, trailingProfitStep);
+                     Print("[BUY] Start trailing ticket: ", ticketId, " negotiated at: ", priceDeal);
                   }
                   // Accumulate level 1 as price goes up
-                  if (mid > _ATTPrice.Sum(priceDeal, trailingProfit)) {
-                     level1 = mid;
-                     level2 = _ATTPrice.Subtract(mid, trailingProfitStep);
+                  if (bid > _ATTPrice.Sum(priceDeal, trailingProfit)) {
+                     level1 = bid;
+                     level2 = _ATTPrice.Subtract(bid, trailingProfitStep);
+                     Print("[BUY] Trailing at: ", level2);
                   }
                   // if prices get back, close positions
-                  if (mid <= level2 && level2 > priceDeal) {
+                  if (bid <= level2 && level2 > priceDeal) {
                      ATTPosition::CloseAllPositions();
-                     Print("BUY: Didn't touch stop profit and get back: ", ticketId);
+                     Print("[BUY] Did not take profit and close near: ", level2);
                   }
                } else {
                   // First interaction
                   if (level1 == 0 && level2 == 0) {
                      level1 = priceDeal;
-                     level2 = _ATTPrice.Sum(mid, trailingProfitStep);
-                  }               
+                     level2 = _ATTPrice.Sum(ask, trailingProfitStep);
+                     Print("[SELL] Start trailing ticket: ", ticketId, " negotiated at: ", priceDeal);
+                  }
                   // Accumulate level 1 as price goes down
-                  if (mid < _ATTPrice.Subtract(priceDeal, trailingProfit)) {
-                     level1 = mid;
-                     level2 = _ATTPrice.Sum(mid, trailingProfitStep);
+                  if (ask < _ATTPrice.Subtract(priceDeal, trailingProfit)) {
+                     level1 = ask;
+                     level2 = _ATTPrice.Sum(ask, trailingProfitStep);
+                     Print("[SELL] Trailing at: ", level2);
                   }
                   // if prices get back, close positions
-                  if (mid >= level2 && level2 < priceDeal) {
+                  if (ask >= level2 && level2 < priceDeal) {
                      ATTPosition::CloseAllPositions();
-                     Print("SELL: Didn't touch stop profit and get back: ", ticketId);
+                     Print("[SELL] Did not take profit and close near: ", level2);
                   }
                }
             }
-         //
          }
       }
    }
