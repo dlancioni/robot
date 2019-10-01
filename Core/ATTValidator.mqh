@@ -15,31 +15,59 @@
 //+------------------------------------------------------------------+
 class ATTValidator {
    private:
+      string ValidateExpired();
       string ValidateAmount(double);
       string ValidatePointsToTrade(double);
       string ValidateStops(double, double, double);
-      string ValidateDailyLimits(double, double);      
+      string ValidateDailyLimits(double, double);
    public:
-      string ValidateParameters(double, double, double, double, double, double, double);   
+      string ValidateParameters(double, double, double, double, double, double, double, double, double);   
 
 };
 
 //+------------------------------------------------------------------+
 //| Validate all input parameter                                     |
 //+------------------------------------------------------------------+
-string ATTValidator::ValidateParameters(double amount, double pointsToTrade, double pointsLoss, double pointsProfit, double trailingLoss, double tralingProfit, double tralingProfitStep) {
+string ATTValidator::ValidateParameters(double amount, double pointsToTrade, double pointsLoss, double pointsProfit, double trailingLoss, double tralingProfit, double tralingProfitStep, double dailyLoss, double dailyProfit) {
    
    string value = "";
-   
-   // Validate the ammount
-   value = ATTValidator::ValidateAmount(amount);
 
    // Validate the ammount
-   value = ATTValidator::ValidatePointsToTrade(pointsToTrade);
+   if (value == "")
+      value = ATTValidator::ValidateExpired();
+   
+   // Validate the ammount
+   if (value == "")
+      value = ATTValidator::ValidateAmount(amount);
+
+   // Validate the ammount
+   if (value == "")   
+      value = ATTValidator::ValidatePointsToTrade(pointsToTrade);
   
    // Validate the stops
-   value = ATTValidator::ValidateStops(trailingLoss, tralingProfit, tralingProfitStep);
+   if (value == "")   
+      value = ATTValidator::ValidateStops(trailingLoss, tralingProfit, tralingProfitStep);
+
+   // Validate daily limits
+   if (value == "")         
+      value = ValidateDailyLimits(dailyLoss, dailyProfit);      
    
+   return value;
+}
+
+//+------------------------------------------------------------------+
+//| Validate the amount                                              |
+//+------------------------------------------------------------------+
+string ATTValidator::ValidateExpired() {
+
+   string value = "";
+   MqlDateTime time;
+   TimeCurrent(time);
+   
+   if (time.mon == 1) {
+      value = "This version of Atom has expired at 12/31/19. Get latest version at github.com/dlancioni/atom";
+   }   
+
    return value;
 }
 
