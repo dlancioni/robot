@@ -28,20 +28,10 @@ period1 = 0;                  // Cross period over short and long <br>
 period2 = 0;                  // Short period<br>
 period3 = 0;                  // Long period<br>
 
-#RSIInfo<br>
-lineUpRSI = 70;               // Up line<br>
-lineDnRSI = 30;               // Dn Line<br>
-periodRSI = 14;               // Periods<br>
-
-#Williams % Range<br>
-lineUpWPR = 90;               // Up line<br>
-lineDnWPR = 10;               // Dn Line<br>
-periodWPR = 14;               // Periods<br>
-
-#MFI specific parameters<br>
-lineUpMFI = 80;               // Up line<br>
-lineDnMFI = 20;               // Dn Line<br>
-periodMFI = 14;               // Periods<br>
+S&RInfo = "----------";       // Support and resistence levels
+_resistenceLevel = 70;        // Resistence level
+_supportLevel = 30;           // Support level
+_period = 14;                 // Periods for Support and Resistence
 
 # Page under construction
 
