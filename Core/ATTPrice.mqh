@@ -26,11 +26,19 @@ double ATTPrice::Sum(double price=0.0, double pts=0.0) {
 
    // General declaration   
    double value = 0.0;
+   double points = 0.0;
    double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
    ulong digits = SymbolInfoInteger(Symbol(), SYMBOL_DIGITS);
    
+   // Calculate the points
+   if (digits == 0) {
+      points = pts * Point();
+   } else {
+      points = pts / Digits();
+   }
+   
    // Calculate value based on given points
-   value = NormalizeDouble(price + (pts * Point()), Digits());
+   value = NormalizeDouble(price + points, Digits());
 
    // Normalize the final value according to the tick size   
    if (digits == 0) {
@@ -47,11 +55,19 @@ double ATTPrice::Subtract(double price=0.0, double pts=0.0) {
 
    // General declaration   
    double value = 0.0;
+   double points = 0.0;
    double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
    ulong digits = SymbolInfoInteger(Symbol(), SYMBOL_DIGITS);   
-   
+
+   // Calculate the points
+   if (digits == 0) {
+      points = pts * Point();
+   } else {
+      points = pts / Digits();
+   }
+
    // Calculate value based on given points
-   value = NormalizeDouble(price - (pts * Point()), Digits());
+   value = NormalizeDouble(price - points, Digits());
 
    // Normalize the final value according to the tick size   
    if (digits == 0) {
