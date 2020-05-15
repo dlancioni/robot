@@ -51,6 +51,7 @@ ATTPosition __ATTPosition;
 ATTIndicator __ATTIndicator;  
 ATTValidator __ATTValidator;
 ATTMath __ATTMath;
+string cross = "";
 string lastCross = "";
 double initialBalance = 0.0;     // Used to limit profit and loss in daily basis
 
@@ -134,7 +135,6 @@ void OnTick() {
 void Trade(double bid, double ask, double mavgShort, double mavgLong) {
 
    // General declaration
-   string cross = "";
    const string UP = "UP";
    const string DN = "DN";   
    ulong orderId = 0;
