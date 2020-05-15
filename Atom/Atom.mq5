@@ -165,21 +165,10 @@ void Trade(double bid, double ask, double mavgShort, double mavgLong) {
       }
    }
    
-   // If cross changed, rever position   
-   if (cross != lastCross) {
-      // Keep current cross
-      lastCross = cross;      
-      // MAVG diff is tight, do not trade SR
-      if (_mavgDiffAvoid > 0) {
-         if (mavgDiff <= _mavgDiffAvoid) {
-            buy = false;
-            sell = false;
-         }
-      }      
-   } else {
-      buy = false;
-      sell = false;   
-   }
+   // Trade on cross only
+   if (lastCross != cross) {
+      lastCross = cross;
+   }   
 
    // True indicates a trade signal was identified
    if (buy || sell) {
