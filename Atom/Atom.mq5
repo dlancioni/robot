@@ -30,15 +30,15 @@ input string TradeInfo = "----------";      // Trade Info
 input ENUM_TIMEFRAMES _chartTime = 1;       // Chart time
 input double _contracts = 5;                // Number of Contracts
 input double _pointsTrade = 10;             // Points after current price to open trade
-input double _pointsLoss = 1000;            // Points stop loss
-input double _pointsProfit = 1000;          // Points take profit
+input double _pointsLoss = 100;             // Points stop loss
+input double _pointsProfit = 100;           // Points take profit
 input double _tralingProfit = 0;            // Points to trigger dinamic stop profit
 input double _tralingProfitStep = 0;        // Points to trail take profit
 input double _trailingLoss = 0;             // Points to trail stop loss
 input string CrossoverInfo = "----------";  // Crossover setup
 input int _mavgShort = 7;                   // Short moving avarage
 input int _mavgLong = 21;                   // Long moving avarage
-input double _tradingLevel = 1000;          // Minimum level to open positions
+input double _tradingLevel = 10;            // Minimum level to open positions
 
 //
 // General Declaration
