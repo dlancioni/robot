@@ -12,7 +12,7 @@
 //+------------------------------------------------------------------+
 //| Pricing related methods (bid/ask, gain/loss, etc                 |
 //+------------------------------------------------------------------+
-class ATTSymbol : public CSymbolInfo {
+class ATTSymbol {
    private:
    public:
       double Bid();
