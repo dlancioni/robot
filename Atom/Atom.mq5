@@ -96,7 +96,6 @@ void OnTick() {
 
    double bid = 0.0;         // Current bid price 
    double ask = 0.0;         // Current ask price
-   double mid = 0.0;         // Avarage price to compare against avarages
   
    // Get prices   
    bid = __ATTSymbol.Bid();
@@ -106,8 +105,6 @@ void OnTick() {
    if (bid > 0 && ask > 0) {
       if (!__ATTBalance.IsResultOverLimits(_dailyLoss, _dailyProfit)) {
          tradeCrossoverStrategy();
-      } else {
-         Print("Daily limits exceeded");
       }
    } else {
        Print("No price available");

@@ -16,7 +16,7 @@ class ATTBalance {
 
    public:
        double GetBalance(); // Total account balance
-       double GetPnL();     // PnL for current opened position
+       double GetProfit();     // PnL for current opened position
        double GetEquity();  // Account balance plus current PnL
        double GetMargin();  // Used margin       
        bool IsResultOverLimits(double, double); // Risk Control - limit profit or loss
@@ -29,7 +29,7 @@ double ATTBalance::GetBalance() {
    return AccountInfoDouble(ACCOUNT_BALANCE);
 }
 
-double ATTBalance::GetPnL() {
+double ATTBalance::GetProfit() {
    return AccountInfoDouble(ACCOUNT_PROFIT);
 }
 
@@ -46,13 +46,15 @@ bool ATTBalance::IsResultOverLimits(double limitLoss, double limitProfit) {
    bool flag = false;
 
    // Profit limit
-   if (ATTBalance::GetPnL() >= limitProfit) {
+   if (ATTBalance::GetProfit() >= limitProfit) {
        flag = true;
+       Print("Profit limited achieved, no more trades today: ", ATTBalance::GetProfit());
    }
 
-   // Loss limit
-   if (ATTBalance::GetPnL() <= limitLoss) {
+   // Loss limit (must negative it)
+   if (ATTBalance::GetProfit() <= limitLoss*-1) {
        flag = true;
+       Print("Loss limited achieved, no more trades today: ", ATTBalance::GetProfit());
    }   
 
    // Touched the limits, stop expert

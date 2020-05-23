@@ -61,10 +61,16 @@ string ATTValidator::ValidateParameters(double dailyLoss,
 string ATTValidator::ValidateExpired() {
 
    string value = "";
-   MqlDateTime time;
-   TimeCurrent(time);
+   datetime currentDate = TimeLocal();
+   datetime expireDate = TimeLocal();
    
-   if (time.mon == 4 || time.mon == 8 || time.mon == 12) {
+   // Next expire date (each 3 months)
+   expireDate = StringToTime("2020.06.31");
+   
+   Print("currentDate: ", currentDate);
+   Print("expireDate: ", expireDate);
+   
+   if (currentDate > expireDate) {
       value = "This version of Atom has expired. Get latest version at github.com/dlancioni/atom";
    }   
    return value;
