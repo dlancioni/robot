@@ -20,37 +20,37 @@ class ATTValidator {
       string ValidatePointsToTrade(double);
       string ValidateStops(double, double, double);
       string ValidateDailyLimits(double, double);
+      string ValidateAverages(double, double, double);
    public:
-      string ValidateParameters(double, double, double, double, double, double, double, double, double);   
+      string ValidateParameters(double, double, double, double, double, double, double, double, double, double, double, double);
 
 };
 
 //+------------------------------------------------------------------+
 //| Validate all input parameter                                     |
 //+------------------------------------------------------------------+
-string ATTValidator::ValidateParameters(double amount, double pointsToTrade, double pointsLoss, double pointsProfit, double trailingLoss, double tralingProfit, double tralingProfitStep, double dailyLoss, double dailyProfit) {
+string ATTValidator::ValidateParameters(double dailyLoss, 
+                                        double dailyProfit,
+                                        double contracts, 
+                                        double pointsTrade, 
+                                        double pointsLoss,
+                                        double pointsProfit, 
+                                        double trailingLoss, 
+                                        double tralingProfit, 
+                                        double tralingProfitStep,
+                                        double mavgShort,
+                                        double mavgLong,
+                                        double tradingLevel) {
    
    string value = "";
 
    // Validate the ammount
-   if (value == "")
-      value = ATTValidator::ValidateExpired();
-   
-   // Validate the ammount
-   if (value == "")
-      value = ATTValidator::ValidateAmount(amount);
-
-   // Validate the ammount
-   if (value == "")   
-      value = ATTValidator::ValidatePointsToTrade(pointsToTrade);
-  
-   // Validate the stops
-   if (value == "")   
-      value = ATTValidator::ValidateStops(trailingLoss, tralingProfit, tralingProfitStep);
-
-   // Validate daily limits
-   if (value == "")         
-      value = ValidateDailyLimits(dailyLoss, dailyProfit);      
+   if (value == "") value = ATTValidator::ValidateExpired();
+   if (value == "") value = ValidateDailyLimits(dailyLoss, dailyProfit);   
+   if (value == "") value = ATTValidator::ValidateAmount(contracts);
+   if (value == "") value = ATTValidator::ValidatePointsToTrade(pointsTrade);
+   if (value == "") value = ATTValidator::ValidateStops(trailingLoss, tralingProfit, tralingProfitStep);
+   if (value == "") value = ATTValidator::ValidateAverages(mavgShort, mavgLong, tradingLevel);
    
    return value;
 }
@@ -132,6 +132,27 @@ string ATTValidator::ValidateDailyLimits(double loss, double profit) {
       
    if (profit <= 0)
       value = "Daily profit value is mandatory";
+
+   return value;
+}
+
+
+
+//+------------------------------------------------------------------+
+//| Validate avarages                                               |
+//+------------------------------------------------------------------+
+string ATTValidator::ValidateAverages(double shortAvg, double longAvg, double tradingLevel) {
+
+   string value = "";
+      
+   if (shortAvg <= 0)
+      value = "Short avarage is mandatory";
+      
+   if (longAvg <= 0)
+      value = "Long avarage is mandatory";
+      
+   if (longAvg < 0)
+      value = "Trading level cannot be negative";
 
    return value;
 }

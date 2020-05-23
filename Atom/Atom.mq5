@@ -22,21 +22,21 @@
 // Define input parameters (comments are labels)
 //
 input string RiskInfo = "----------";       // Risk Info
-input double _dailyProfit = 500;            // Daily profit limit
-input double _dailyLoss = 500;              // Daily loss limit
+input double _dailyProfit = 0;              // Daily profit limit
+input double _dailyLoss = 0;                // Daily loss limit
 input string TradeInfo = "----------";      // Trade Info 
 input ENUM_TIMEFRAMES _chartTime = 1;       // Chart time
-input double _contracts = 5;                // Number of Contracts
+input double _contracts = 0;                // Number of Contracts
 input double _pointsTrade = 0;              // Points after current price to open trade
-input double _pointsLoss = 200;             // Points stop loss
-input double _pointsProfit = 100;           // Points take profit
+input double _pointsLoss = 0;               // Points stop loss
+input double _pointsProfit = 0;             // Points take profit
 input double _tralingProfit = 0;            // Points to trigger dinamic stop profit
 input double _tralingProfitStep = 0;        // Points to trail take profit
 input double _trailingLoss = 0;             // Points to trail stop loss
 input string CrossoverInfo = "----------";  // Crossover setup
-input int _mavgShort = 7;                   // Short moving avarage
-input int _mavgLong = 14;                   // Long moving avarage
-input double _tradingLevel = 10;            // Minimum level to open positions
+input int _mavgShort = 0;                   // Short moving avarage
+input int _mavgLong = 0;                    // Long moving avarage
+input double _tradingLevel = 0;             // Minimum level to open positions
 
 //
 // General Declaration
@@ -64,15 +64,18 @@ int OnInit() {
    initialBalance = __ATTBalance.GetBalance();
    
    // Validate input parameters related to trade and abort program if something is wrong
-   msg = __ATTValidator.ValidateParameters(_contracts, 
+   msg = __ATTValidator.ValidateParameters(_dailyLoss, 
+                                           _dailyProfit,
+                                           _contracts, 
                                            _pointsTrade, 
-                                           _pointsLoss, 
+                                           _pointsLoss,
                                            _pointsProfit, 
                                            _trailingLoss, 
                                            _tralingProfit, 
-                                           _tralingProfitStep, 
-                                           _dailyLoss, 
-                                           _dailyProfit);
+                                           _tralingProfitStep,
+                                           _mavgShort,
+                                           _mavgLong,
+                                           _tradingLevel);
    if (msg != "") {
       Print(msg);
       Alert(msg);
@@ -98,30 +101,18 @@ void OnTick() {
    double bid = 0.0;         // Current bid price 
    double ask = 0.0;         // Current ask price
    double mid = 0.0;         // Avarage price to compare against avarages
-   
-   double mavgShort = 0;     // Short moving avarage
-   double mavgLong = 0;      // Long moving avarage
-   double level = 0;         // Current support and resistence level (using wpr)
-
-   // if result touch the limits - stop everything  
-   __ATTBalance.IsResultOverLimits(initialBalance, _dailyLoss, _dailyProfit);
-   
+  
    // Get prices   
    bid = __ATTSymbol.Bid();
    ask = __ATTSymbol.Ask();
 
    // If no price, no deal (markets closed, or off-line)
    if (bid > 0 && ask > 0) {
-
-      // Calculate indicators - EMAS
-      if ((_mavgShort > 0) && (_mavgLong > 0)) {
-         mavgShort = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgShort);
-         mavgLong = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgLong);
+      if (!__ATTBalance.IsResultOverLimits(initialBalance, _dailyLoss, _dailyProfit)) {
+         tradeCrossoverStrategy();
+      } else {
+         Print("Daily limits exceeded");
       }
-
-      // Open trades according to indicators
-      Trade(bid, ask, mavgShort, mavgLong);
-
    } else {
        Print("No price available");
    }
@@ -130,7 +121,7 @@ void OnTick() {
 //
 // Open position as indicators are attended
 //
-void Trade(double bid, double ask, double mavgShort, double mavgLong) {
+void tradeCrossoverStrategy() {
 
    // General declaration
    const string UP = "UP";
@@ -142,8 +133,13 @@ void Trade(double bid, double ask, double mavgShort, double mavgLong) {
    double priceLoss = 0.0;
    double priceProfit = 0.0;
    double mavgDiff = 0.0;
+   double mavgShort = 0;     // Short moving avarage
+   double mavgLong = 0;      // Long moving avarage
+   double level = 0;         // Current support and resistence level (using wpr)   
 
-   // Keep the difference of mavgs
+   // Get avgs and calculate difference
+   mavgShort = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgShort);
+   mavgLong = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgLong);
    mavgDiff = MathAbs(__ATTMath.Subtract(mavgLong, mavgShort));
    
    // Log current level:
@@ -181,13 +177,13 @@ void Trade(double bid, double ask, double mavgShort, double mavgLong) {
    // Do not open more than one position at a time
    if (PositionsTotal() == 0) {
       if (buy) {
-         priceDeal = __ATTPrice.Sum(ask, _pointsTrade);
+         priceDeal = __ATTPrice.Sum(__ATTSymbol.Ask(), _pointsTrade);
          priceLoss = __ATTPrice.Subtract(priceDeal, _pointsLoss);
          priceProfit = __ATTPrice.Sum(priceDeal, _pointsProfit);
          orderId = __ATTOrder.Buy(_ORDER_TYPE::MARKET, Symbol(), _contracts, priceDeal, priceLoss, priceProfit);
       }
       if (sell) {
-         priceDeal = __ATTPrice.Subtract(bid, _pointsTrade);
+         priceDeal = __ATTPrice.Subtract(__ATTSymbol.Bid(), _pointsTrade);
          priceLoss = __ATTPrice.Sum(priceDeal, _pointsLoss);
          priceProfit = __ATTPrice.Subtract(priceDeal, _pointsProfit);
          orderId = __ATTOrder.Sell(_ORDER_TYPE::MARKET, Symbol(), _contracts, priceDeal, priceLoss, priceProfit);

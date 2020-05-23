@@ -19,7 +19,7 @@ class ATTBalance {
        double GetPnL();     // PnL for current opened position
        double GetEquity();  // Account balance plus current PnL
        double GetMargin();  // Used margin       
-       void IsResultOverLimits(double initialBalance, double loss, double profit); // Risk Control - limit profit or loss
+       bool IsResultOverLimits(double initialBalance, double loss, double profit); // Risk Control - limit profit or loss
 };
 
 //+------------------------------------------------------------------+
@@ -41,12 +41,11 @@ double ATTBalance::GetMargin() {
    return AccountInfoDouble(ACCOUNT_MARGIN);
 }
 
-void ATTBalance::IsResultOverLimits(double ib, double loss, double profit) {
+bool ATTBalance::IsResultOverLimits(double ib, double loss, double profit) {
 
    bool flag = false;
    double result = 0.0;
    double equity = 0.0;
-   ATTPosition _ATTPosition_;
 
    // Calculate current result
    equity = ATTBalance::GetEquity();   
@@ -67,11 +66,7 @@ void ATTBalance::IsResultOverLimits(double ib, double loss, double profit) {
    }
 
    // Touched the limits, stop expert
-   if (flag == true)       {
-      Print("Out of daily limits, please check pnl on history tab");
-     _ATTPosition_.CloseAllPositions();
-      ExpertRemove();
-   } 
+   return flag; 
 }
 
 
