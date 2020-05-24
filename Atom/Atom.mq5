@@ -22,21 +22,23 @@
 // Define input parameters (comments are labels)
 //
 input string RiskInfo = "----------";       // Risk Info
-input double _dailyProfit = 0;              // Daily profit limit
 input double _dailyLoss = 0;                // Daily loss limit
-input string TradeInfo = "----------";      // Trade Info 
+input double _dailyProfit = 0;              // Daily profit limit
+input string ChartInfo = "----------";      // Strategy setup for crossover
 input ENUM_TIMEFRAMES _chartTime = 1;       // Chart time
+input int _shortAvg = 0;                    // Short moving avarage
+input int _longAvg = 0;                     // Long moving avarage
+input double _diffAvg = 0;                  // Averages difference to open position
+input string TradeInfo = "----------";      // Trade Info 
 input double _contracts = 0;                // Number of Contracts
-input double _pointsTrade = 0;              // Points after current price to open trade
-input double _pointsLoss = 0;               // Points stop loss
+input double _pointsLoss = 0;               // Points stop loss (zero close on cross)
 input double _pointsProfit = 0;             // Points take profit
+input double _pointsTrade = 0;              // Points after current price to open trade
+input string Trailing = "----------";       // Trailing info 
+input double _trailingLoss = 0;             // Points to trail stop loss
 input double _tralingProfit = 0;            // Points to trigger dinamic stop profit
 input double _tralingProfitStep = 0;        // Points to trail take profit
-input double _trailingLoss = 0;             // Points to trail stop loss
-input string CrossoverInfo = "----------";  // Crossover setup
-input int _mavgShort = 0;                   // Short moving avarage
-input int _mavgLong = 0;                    // Long moving avarage
-input double _tradingLevel = 0;             // Minimum level to open positions
+
 
 //
 // General Declaration
@@ -69,9 +71,9 @@ int OnInit() {
                                            _trailingLoss, 
                                            _tralingProfit, 
                                            _tralingProfitStep,
-                                           _mavgShort,
-                                           _mavgLong,
-                                           _tradingLevel);
+                                           _shortAvg,
+                                           _longAvg,
+                                           _diffAvg);
    if (msg != "") {
       Print(msg);
       Alert(msg);
@@ -118,36 +120,40 @@ void tradeCrossoverStrategy() {
 
    // General declaration
    const string UP = "UP";
-   const string DN = "DN";   
-   ulong orderId = 0;
+   const string DN = "DN";
+   
    bool buy = false;
    bool sell = false;   
-   double priceDeal = 0;
-   double priceLoss = 0.0;
-   double priceProfit = 0.0;
-   double mavgDiff = 0.0;
-   double mavgShort = 0;     // Short moving avarage
-   double mavgLong = 0;      // Long moving avarage
-   double level = 0;         // Current support and resistence level (using wpr)   
-
+   ulong orderId = 0;
+   double price = 0;
+   double sl = 0;
+   double tp = 0;
+   double shortAvg = 0;
+   double longAvg = 0;
+   double diffAvg = 0;
+   
    // Get avgs and calculate difference
-   mavgShort = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgShort);
-   mavgLong = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _mavgLong);
-   mavgDiff = MathAbs(__ATTMath.Subtract(mavgLong, mavgShort));
+   shortAvg = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _shortAvg);
+   longAvg = __ATTIndicator.CalculateMovingAvarage(Symbol(), _chartTime, _longAvg);
+   diffAvg = MathAbs(__ATTMath.Subtract(longAvg, shortAvg));
    
    // Log current level:
-   Comment("Level: ", mavgDiff, "  ", "Last Cross: ", lastCross);
+   Comment("Diff: ", diffAvg, "  ", "Cross: ", lastCross);
    
    // Trade on support and resistence crossover
-   if ((mavgShort > mavgLong) && (mavgDiff > _tradingLevel)) {
-      cross = UP;
-      buy = true;
-      sell = false;
+   if (shortAvg > longAvg) {
+       if (diffAvg > _diffAvg) {
+           cross = UP;
+           buy = true;
+           sell = false;
+       }
    }  
-   if ((mavgShort < mavgLong) && (mavgDiff > _tradingLevel)) {      
-      cross = DN;
-      buy = false;
-      sell = true;
+   if (shortAvg < longAvg) {      
+       if (diffAvg > _diffAvg) {
+          cross = DN;
+          buy = false;
+          sell = true;
+       }
    }
 
    // Trade on cross only
@@ -170,16 +176,16 @@ void tradeCrossoverStrategy() {
    // Do not open more than one position at a time
    if (PositionsTotal() == 0) {
       if (buy) {
-         priceDeal = __ATTPrice.Sum(__ATTSymbol.Ask(), _pointsTrade);
-         priceLoss = __ATTPrice.Subtract(priceDeal, _pointsLoss);
-         priceProfit = __ATTPrice.Sum(priceDeal, _pointsProfit);
-         orderId = __ATTOrder.Buy(_ORDER_TYPE::MARKET, Symbol(), _contracts, priceDeal, priceLoss, priceProfit);
+         price = __ATTPrice.Sum(__ATTSymbol.Ask(), _pointsTrade);
+         sl = __ATTPrice.Subtract(price, _pointsLoss);
+         tp = __ATTPrice.Sum(price, _pointsProfit);
+         orderId = __ATTOrder.Buy(_ORDER_TYPE::MARKET, Symbol(), _contracts, price, sl, tp);
       }
       if (sell) {
-         priceDeal = __ATTPrice.Subtract(__ATTSymbol.Bid(), _pointsTrade);
-         priceLoss = __ATTPrice.Sum(priceDeal, _pointsLoss);
-         priceProfit = __ATTPrice.Subtract(priceDeal, _pointsProfit);
-         orderId = __ATTOrder.Sell(_ORDER_TYPE::MARKET, Symbol(), _contracts, priceDeal, priceLoss, priceProfit);
+         price = __ATTPrice.Subtract(__ATTSymbol.Bid(), _pointsTrade);
+         sl = __ATTPrice.Sum(price, _pointsLoss);
+         tp = __ATTPrice.Subtract(price, _pointsProfit);
+         orderId = __ATTOrder.Sell(_ORDER_TYPE::MARKET, Symbol(), _contracts, price, sl, tp);
       }
    } else {
        __ATTPosition.TrailStop(_pointsLoss, _trailingLoss, _tralingProfit, _tralingProfitStep);
