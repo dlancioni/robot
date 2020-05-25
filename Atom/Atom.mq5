@@ -127,7 +127,8 @@ void tradeCrossoverStrategy(string symbol) {
    bool sell = false;   
    ulong orderId = 0;
    double price = 0;
-   double sl = 0;
+   double slb = 0;         // Stop loss buy
+   double sls = 0;         // Stop loss sell
    double tp = 0;
    double shortAvg = 0;
    double longAvg = 0;
@@ -150,22 +151,27 @@ void tradeCrossoverStrategy(string symbol) {
          diffAvg = diffAvg;       
    }
    
-   Print("shortAvg: ", shortAvg, " longAvg: ", longAvg, " diffAvg: ", diffAvg);
-      
-   // Log current level:
    Comment("Diff: ", diffAvg, "  ", "Cross: ", lastCross);
    
-   // Trade on support and resistence crossover
+   // Cross UP
    if (shortAvg > longAvg) {
-       sl = ATSymbol.Ask();
+       if (slb == 0.0) {
+           slb = ATSymbol.Ask();
+           sls = 0;
+       }
        if (diffAvg > _diffAvg) {
            cross = UP;
            buy = true;
            sell = false;
        }
    }  
-   if (shortAvg < longAvg) {      
-      tp = ATSymbol.Bid();
+   
+   // Cross DN   
+   if (shortAvg < longAvg) {         
+       if (sls == 0.0) {
+           sls = ATSymbol.Bid();
+           slb = 0;
+       }
        if (diffAvg > _diffAvg) {
           cross = DN;
           buy = false;
@@ -194,21 +200,26 @@ void tradeCrossoverStrategy(string symbol) {
    if (PositionsTotal() == 0) {
       if (buy) {
          price = ATPrice.Sum(ATSymbol.Ask(), _pointsTrade);
-         if (sl == 0) {
-             sl = ATPrice.Subtract(price, _pointsLoss);
+         if (slb == 0) {
+             slb = ATPrice.Subtract(price, _pointsLoss);
          }    
          tp = ATPrice.Sum(price, _pointsProfit);
-         orderId = ATOrder.Buy(_ORDER_TYPE::MARKET, symbol, _contracts, price, sl, tp);
+         orderId = ATOrder.Buy(_ORDER_TYPE::MARKET, symbol, _contracts, price, slb, tp);
       }
       if (sell) {
          price = ATPrice.Subtract(ATSymbol.Bid(), _pointsTrade);
-         if (sl == 0) {         
-            sl = ATPrice.Sum(price, _pointsLoss);
+         if (sls == 0) {         
+            sls = ATPrice.Sum(price, _pointsLoss);
          }
          tp = ATPrice.Subtract(price, _pointsProfit);
-         orderId = ATOrder.Sell(_ORDER_TYPE::MARKET, symbol, _contracts, price, sl, tp);
+         orderId = ATOrder.Sell(_ORDER_TYPE::MARKET, symbol, _contracts, price, sls, tp);
       }
    } else {
        ATPosition.TrailStop(_pointsLoss, _trailingLoss, _tralingProfit, _tralingProfitStep);
    }
+   
+   // Log variableon experts tab
+   Print("shortAvg: ", shortAvg, " longAvg: ", longAvg, " diffAvg: ", diffAvg, "_diffAvg: ", _diffAvg, " slss: ", sls, " slb:", slb);
+   
+   
 }
