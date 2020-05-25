@@ -51,10 +51,17 @@ double ATTBalance::GetDailyPnl() {
     double profit = 0;
     double pnl = 0;
     uint total = 0;
-    
-    datetime from = StringToTime("2020.05.25 [00:00]");
-    datetime to = StringToTime("2020.06.31 [23:59]");
-   
+    string dt = "";
+    datetime from;
+    datetime to;
+    MqlDateTime today;
+    TimeToStruct(TimeLocal(), today);
+
+    // Get today's trades    
+    dt = IntegerToString(today.year) + "." + IntegerToString(today.mon) + "." + IntegerToString(today.day);
+    from = StringToTime(dt + " " + "00:00:00");
+    to = StringToTime(dt + " " + "23:59:00");
+
    // Select deals form history
     HistorySelect(from, to);
     total = HistoryDealsTotal();
@@ -84,13 +91,13 @@ bool ATTBalance::IsResultOverLimits(double limitLoss, double limitProfit) {
    // Profit limit
    if (pnl >= limitProfit) {
        flag = true;
-       Print("Profit limited achieved, no more trades today: ", ATTBalance::GetProfit());
+       Print("Profit limited achieved, no more trades today: ", pnl);
    }
 
    // Loss limit (must negative it)
    if (pnl <= limitLoss*-1) {
        flag = true;
-       Print("Loss limited achieved, no more trades today: ", ATTBalance::GetProfit());
+       Print("Loss limited achieved, no more trades today: ", pnl);
    }   
 
    // Touched the limits, stop expert
