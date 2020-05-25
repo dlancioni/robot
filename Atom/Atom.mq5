@@ -142,7 +142,7 @@ void tradeCrossoverStrategy(string symbol) {
    // Ajust according to digits
    switch (Digits()) {
       case 3:
-         diffAvg = diffAvg * 1000;
+         diffAvg = diffAvg * 10;
          break;   
       case 5:
          diffAvg = diffAvg * 100000;
