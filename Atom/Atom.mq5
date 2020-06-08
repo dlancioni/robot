@@ -180,11 +180,9 @@ void tradeCrossoverStrategy(string symbol, double bid = 0, double ask = 0, doubl
        }
        if (diffAvg > _diffAvg) {
            if (MathAbs(shortAvg-ask) <= _limitPoint) {
-               if (MathAbs(slb-ask) <= _pointsLoss) { 
-                   cross = UP;
-                   buy = true;
-                   sell = false;
-               }
+               cross = UP;
+               buy = true;
+               sell = false;
            }
        }       
     }
@@ -195,11 +193,9 @@ void tradeCrossoverStrategy(string symbol, double bid = 0, double ask = 0, doubl
        }
        if (diffAvg > _diffAvg) {
            if (MathAbs(shortAvg-bid) <= _limitPoint) {
-               if (MathAbs(sls-bid) <= _pointsLoss) {            
-                   cross = DN;
-                   buy = false;
-                   sell = true;
-               }
+               cross = DN;
+               buy = false;
+               sell = true;
            }
        }              
     }
