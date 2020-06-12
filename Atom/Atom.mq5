@@ -171,33 +171,23 @@ void tradeCrossoverStrategy(string symbol, double bid = 0, double ask = 0, doubl
     // Calculate profit & loss
     tpb = ATPrice.Sum(ask, _pointsProfit);
     tps = ATPrice.Subtract(bid, _pointsProfit);    
-
+    slb = ATPrice.Subtract(ask, _pointsLoss);
+    sls = ATPrice.Sum(bid, _pointsLoss);    
+    
     // Crossover logic
     if (shortAvg > longAvg) {      
-       if (slb == 0.0) {
-           slb = ATPrice.Subtract(ask, _pointsLoss);
-           sls = 0;
-       }
-       if (diffAvg > _diffAvg) {
-           if (MathAbs(shortAvg-ask) <= _limitPoint) {
-               cross = UP;
-               buy = true;
-               sell = false;
-           }
-       }       
+        if (diffAvg > _diffAvg) {
+            cross = UP;
+            buy = true;
+            sell = false;
+        }       
     }
     if (shortAvg < longAvg) {    
-       if (sls == 0.0) {
-           sls = ATPrice.Sum(bid, _pointsLoss);
-           slb = 0;
-       }
-       if (diffAvg > _diffAvg) {
-           if (MathAbs(shortAvg-bid) <= _limitPoint) {
-               cross = DN;
-               buy = false;
-               sell = true;
-           }
-       }              
+        if (diffAvg > _diffAvg) {
+            cross = DN;
+            buy = false;
+            sell = true;
+        }              
     }
 
     // Trade on cross only
